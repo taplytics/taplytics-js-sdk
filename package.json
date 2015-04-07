@@ -1,0 +1,39 @@
+{
+  "name": "taplytics.js",
+  "version": "0.0.1",
+  "description": "Taplytics JS SDK",
+  "main": "dist/taplytics.min.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taplytics/Taplytics-JS.git"
+  },
+  "author": "Nima Gardideh <nima@taplytics.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/taplytics/Taplytics-JS/issues"
+  },
+  "homepage": "https://github.com/taplytics/Taplytics-JS",
+  "dependencies": {
+    "browserify": "^9.0.7",
+    "compression": "^1.4.3",
+    "cookies-js": "^1.2.1",
+    "del": "^1.1.1",
+    "express": "^4.12.3",
+    "gulp": "^3.8.11",
+    "gulp-notify": "^2.2.0",
+    "gulp-sequence": "^0.3.2",
+    "gulp-util": "^3.0.4",
+    "gulp-watch": "^4.2.3",
+    "morgan": "^1.5.2",
+    "qs": "^2.4.1",
+    "require-dir": "^0.3.0",
+    "superagent": "^1.1.0",
+    "uuid": "^2.0.1",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.1.0"
+  }
+}
