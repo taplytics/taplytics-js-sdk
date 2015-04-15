@@ -4,6 +4,9 @@ var app = require('./app');
 
 window.Taplytics = module.exports = app;
 
+// Launch functions from the queue if there's one.
+// This queue is created by the async loader.
+
 if (window._TLQueue && window._TLQueue instanceof Array) {
     var queue = window._TLQueue;
 
@@ -16,7 +19,6 @@ if (window._TLQueue && window._TLQueue instanceof Array) {
 
             if (app[func_name] instanceof Function)
                 app[func_name].apply(app, func_args);
-
         }
     }
 
@@ -105,11 +107,81 @@ function queryString(query) {
 
 	return "?" + Qs.stringify(query);
 }
-},{"../../config":12,"../lib/logger":9,"qs":15,"superagent":20}],4:[function(require,module,exports){
-var users_path = 'users';
+},{"../../config":13,"../lib/logger":10,"qs":16,"superagent":21}],4:[function(require,module,exports){
+var location = require('../lib/location');
+var platform = require('platform');
+var source = require('../lib/source');
 var logger = require('../lib/logger');
 
+
+var users_path = 'users';
+
 module.exports = function(api) {
+
+	var createUser = function(app, user_attrs, failure_message) {
+		var locationData = location(); // document.location
+	    var sourceData = source(); // documen.referrer + location.search
+	    var appUser = user_attrs;
+	    var session = {};
+
+	    if (!appUser)
+	    	appUser = {};
+
+	    session.sid = app._in.session.getSessionID();
+	    session.ad  = app._in.session.getSessionUUID();
+	    session.adt = 'browser';
+	    session.ct  = 'browser';
+	    session.lv  = false; // liveUpdate
+	    session.rfr = sourceData.referrer;
+	    session.prms = {
+	        search: sourceData.search,
+	        location: locationData,
+	        platform: platform
+	    };
+
+	    if (platform) {
+	        session.os = platform.os.family;
+	        session.osv = platform.os.version;
+	        session.ma = platform.manufacturer;
+	        session.br = platform.product;
+	        session.bron = platform.name;
+	        session.brov = platform.version;
+	        session.brol = platform.layout;
+	    }
+
+	    appUser.auid = app._in.session.getAppUserID();
+
+	    var params = {
+	        public_token: app._in.token
+	    };
+
+	    var payload = {
+	        session: session,
+	        app_user: appUser
+	    };
+
+	    logger.log("Taplytics::Users.createUser", payload);
+	    post(params, payload, function(err, response) {
+	        if (err) {
+	            logger.error(failure_message, err, logger.USER);
+	        } else {
+	            var data = response.body;
+
+	            if (data) {
+	                logger.log("Taplytics::Users.createUser: successfully created/updated user.", response, logger.DEBUG);
+
+	                var appUserID = data.app_user_id;
+	                var sessionID = data.session_id;
+
+	                app._in.session.setAppUserID(appUserID);
+	                app._in.session.setSessionID(sessionID);
+	                app._in.session.tick();
+	            } else {
+	                logger.error(failure_message, null, logger.USER);
+	            }
+	        }
+	    });
+	};
 
 	var post = function(params, payload, callback) {
 		logger.log("users_post", payload, logger.DEBUG);
@@ -129,58 +201,124 @@ module.exports = function(api) {
 	};
 
 	return {
+		createUser: createUser,
 		post: post,
 		update: update
 	};
 };
-},{"../lib/logger":9}],5:[function(require,module,exports){
+
+
+},{"../lib/location":9,"../lib/logger":10,"../lib/source":11,"platform":15}],5:[function(require,module,exports){
 var Taplytics = {};
 
 
 Taplytics.init = require('./functions/init')(Taplytics);
+Taplytics.isReady = require('./functions/isReady')(Taplytics);
 Taplytics.identify = require('./functions/identify')(Taplytics);
 
 module.exports = Taplytics;
-},{"./functions/identify":6,"./functions/init":7}],6:[function(require,module,exports){
+},{"./functions/identify":6,"./functions/init":7,"./functions/isReady":8}],6:[function(require,module,exports){
 var logger = require('../lib/logger');
 var api = require('../api');
 
 module.exports = function(app) {
-	return function(user_id, attrs) {
-		if (!app.token || !app.session) {
-			logger.error("Taplytics::identify: you have to call Taplytics.init first.", null, 1);
-			return null;
-		}
+    return function(attrs) {
+        if (!app.isReady()) {
+            logger.error("Taplytics::identify: you have to call Taplytics.init first.", null, logger.USER);
+            return false;
+        }
 
-		var params = {
-			token: app.token
-		};
+        if (!isValidAttrs(attrs)) {
+            logger.error("Taplytics::identify: you have to pass in an object with user attributes.", null, logger.USER);
 
-		var payload = {
-			client_id: app.session.getSessionID(),
-			user_attributes: attrs
-		};
+            return false;
+        }
 
-		if (isEmail(user_id))
-			payload.email = user_id;
-		else
-			payload.user_id = user_id;
+        var parsedAttrs = parseAttrs(attrs);
 
-		api.clients.update(params, payload);
+        api.users.createUser(app, parsedAttrs, "Taplytics::identify: failed to save the user attributes properly.");
 
-		return app;
-	};
+        return app;
+    };
 };
 
-function isEmail(str) {
-	return (typeof str === 'string') && str.indexOf('@') !== -1;
+// Helpers
+
+function isValidAttrs(attrs) {
+    if (!attrs || (attrs && (typeof attrs !== "object")))
+        return false;
+
+    return true;
 }
-},{"../api":2,"../lib/logger":9}],7:[function(require,module,exports){
+
+function parseAttrs(attrs) {
+    var userAttrs = {
+        customData: {}
+    };
+
+    var attrKeys = Object.keys(attrs);
+    var attrIndex = 0;
+
+    for (attrIndex = 0; attrIndex < attrKeys.length; attrIndex++) {
+        var key = attrKeys[attrIndex];
+        var value = attrs[key];
+        var keyInfo = isTopLevelKey(key);
+
+        if (keyInfo && keyInfo.isTopLevel) {
+            userAttrs[keyInfo.acceptedKey] = value;
+        } else {
+            userAttrs.customData[key] = value;
+        }
+    }
+
+    return userAttrs;
+}
+
+
+// Rather slow implmenetation, but it's fine since the data size is very small
+function isTopLevelKey(key) {
+    var accepted = {
+        'user_id': ['user_id', 'id', 'userID', 'userId', 'customer_id', 'member_id'],
+        'email': ['email', 'email_address'],
+        'name': ['name'],
+        'firstName': ['first_name', 'firstName'],
+        'lastName': ['last_name', 'lastName'],
+        'avatarUrl': ['avatar', 'avatarUrl'],
+        'age': ['age'],
+        'gender': ['gender']
+    };
+
+    var topLevelKeys = Object.keys(accepted);
+    var acceptedIndex = 0;
+    var acceptedKeyIndex = 0;
+
+    for (acceptedIndex = 0; acceptedIndex < topLevelKeys.length; acceptedIndex++) {
+        var topLevelKey = topLevelKeys[acceptedIndex];
+        var acceptedKeys = accepted[topLevelKey];
+
+        if (acceptedKeys) {
+            for (acceptedKeyIndex = 0; acceptedKeyIndex < acceptedKeys.length; acceptedKeyIndex++) {
+                var acceptedKey = acceptedKeys[acceptedKeyIndex];
+
+                if (acceptedKey && key && acceptedKey == key)
+                    return {
+                        isTopLevel: true,
+                        acceptedKey: acceptedKey
+                    };
+            }           
+        }
+    }
+
+
+    return {
+        isTopLevel: false
+    };
+}
+
+},{"../api":2,"../lib/logger":10}],7:[function(require,module,exports){
 var logger = require('../lib/logger');
 var api = require('../api');
-var location = require('../lib/location');
-var platform = require('platform');
-var source = require('../lib/source');
+
 
 module.exports = function(app) {
     return function(token, options) {
@@ -204,8 +342,7 @@ module.exports = function(app) {
 
         app._in.session.start();
 
-        createUser(app);
-
+        api.users.createUser(app, {}, "Taplytics: Init failed. Taplytics will not function properly.");
         return app;
     };
 };
@@ -224,71 +361,29 @@ function isValidToken(token) {
 
     return true;
 }
+},{"../api":2,"../lib/logger":10,"../session":12}],8:[function(require,module,exports){
+var logger = require('../lib/logger');
+var api = require('../api');
 
-// Request functions
+module.exports = function(app) {
+    return function() {
+        if (!app)
+            return false;
 
-function createUser(app) {
-    var locationData = location(); // document.location
-    var sourceData = source(); // documen.referrer + location.search
-    var appUser = {};
-    var session = {};
+        if (!app._in)
+            return false;
 
-    session.sid = app._in.session.getSessionID();
-    session.ad  = app._in.session.getSessionUUID();
-    session.adt = 'browser';
-    session.ct  = 'browser';
-    session.lv  = false;
-    session.rfr = sourceData.referrer;
-    session.prms = {
-        search: sourceData.search,
-        location: locationData,
-        platform: platform
+        if (!app._in.token)
+            return false;
+
+        if (!app._in.session)
+            return false;
+
+        return true;
     };
+};
 
-    if (platform) {
-        session.os = platform.os.family;
-        session.osv = platform.os.version;
-        session.ma = platform.manufacturer;
-        session.br = platform.product;
-        session.bron = platform.name;
-        session.brov = platform.version;
-        session.brol = platform.layout;
-    }
-
-    appUser.auid = app._in.session.getAppUserID();
-
-    var params = {
-        public_token: app._in.token
-    };
-
-    var payload = {
-        session: session,
-        app_user: appUser
-    };
-
-    logger.log("Taplytics::init.createUser", payload);
-    api.users.post(params, payload, function(err, response) {
-        if (err) {
-            logger.error("Taplytics: Init failed. Taplytics is currently not working.", err, logger.USER);
-        } else {
-            var data = response.body;
-
-            if (data) {
-                logger.log("Taplytics::init.createUser: successfully created user.", response, logger.DEBUG);
-
-                var appUserID = data.app_user_id;
-                var sessionID = data.session_id;
-
-                app._in.session.setAppUserID(appUserID);
-                app._in.session.setSessionID(sessionID);
-                app._in.session.tick();
-            } else {
-                logger.error("Taplytics: Init failed. Taplytics is currently not working.", null, logger.USER);
-            }
-        }
-    });  
-}
-},{"../api":2,"../lib/location":8,"../lib/logger":9,"../lib/source":10,"../session":11,"platform":14}],8:[function(require,module,exports){
+},{"../api":2,"../lib/logger":10}],9:[function(require,module,exports){
 module.exports = function() {
     return {
       href: document.location.href,
@@ -299,7 +394,7 @@ module.exports = function() {
     };
 };
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var priority_level = 0; // 2: debug, 1: log, 0: quiet (big error only)
 
 function isLoggerEnabled(level) {
@@ -314,15 +409,16 @@ module.exports = {
         priority_level = priority;
     },
     log: function(desc, obj, level) {
-        if (!isLoggerEnabled(level))
+        if (level !== undefined && !isLoggerEnabled(level))
             return;
         
         console.log(desc);
+        
         if (obj)
             console.dir(obj);
     },
     error: function(desc, err, level) {
-        if (!isLoggerEnabled(level))
+        if (level !== undefined && !isLoggerEnabled(level))
             return;
 
         console.error(desc);
@@ -331,7 +427,7 @@ module.exports = {
             console.dir(err);
     }
 };
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var Qs = require('qs');
 
 module.exports = function() {
@@ -351,7 +447,7 @@ module.exports = function() {
 
 	return source;
 };
-},{"qs":15}],11:[function(require,module,exports){
+},{"qs":16}],12:[function(require,module,exports){
 var logger = require('./lib/logger');
 
 var Cookies = require('cookies-js');
@@ -486,14 +582,14 @@ function dateAdd(date, interval, units) { // Thank you SO: http://stackoverflow.
   }
   return ret;
 }
-},{"./lib/logger":9,"cookies-js":13,"uuid":24}],12:[function(require,module,exports){
+},{"./lib/logger":10,"cookies-js":14,"uuid":25}],13:[function(require,module,exports){
 var config = {};
 
 config.baseAPI = "http://localhost:3002/public_api/v1/";
 
 module.exports = config;
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /*
  * Cookies.js - 1.2.1
  * https://github.com/ScottHamper/Cookies
@@ -655,7 +751,7 @@ module.exports = config;
         global.Cookies = cookiesExport;
     }
 })(typeof window === 'undefined' ? this : window);
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 (function (global){
 /*!
  * Platform.js v1.3.0 <http://mths.be/platform>
@@ -1794,10 +1890,10 @@ module.exports = config;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 module.exports = require('./lib/');
 
-},{"./lib/":16}],16:[function(require,module,exports){
+},{"./lib/":17}],17:[function(require,module,exports){
 // Load modules
 
 var Stringify = require('./stringify');
@@ -1814,7 +1910,7 @@ module.exports = {
     parse: Parse
 };
 
-},{"./parse":17,"./stringify":18}],17:[function(require,module,exports){
+},{"./parse":18,"./stringify":19}],18:[function(require,module,exports){
 // Load modules
 
 var Utils = require('./utils');
@@ -1977,7 +2073,7 @@ module.exports = function (str, options) {
     return Utils.compact(obj);
 };
 
-},{"./utils":19}],18:[function(require,module,exports){
+},{"./utils":20}],19:[function(require,module,exports){
 // Load modules
 
 var Utils = require('./utils');
@@ -2076,7 +2172,7 @@ module.exports = function (obj, options) {
     return keys.join(delimiter);
 };
 
-},{"./utils":19}],19:[function(require,module,exports){
+},{"./utils":20}],20:[function(require,module,exports){
 // Load modules
 
 
@@ -2210,7 +2306,7 @@ exports.isBuffer = function (obj) {
         obj.constructor.isBuffer(obj));
 };
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -3323,7 +3419,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":21,"reduce":22}],21:[function(require,module,exports){
+},{"emitter":22,"reduce":23}],22:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -3489,7 +3585,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -3514,7 +3610,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 (function (global){
 
 var rng;
@@ -3549,7 +3645,7 @@ module.exports = rng;
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 //     uuid.js
 //
 //     Copyright (c) 2010-2012 Robert Kieffer
@@ -3734,4 +3830,4 @@ uuid.unparse = unparse;
 
 module.exports = uuid;
 
-},{"./rng":23}]},{},[1]);
+},{"./rng":24}]},{},[1]);

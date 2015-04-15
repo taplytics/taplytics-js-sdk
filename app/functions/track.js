@@ -3,11 +3,11 @@ var api = require('../api');
 
 module.exports = function(app) {
 	return function(user_id, attrs) {
-		if (!app.token) {
-			logger.error("Taplytics::identify: an SDK token is required.", null, 1);
-			return null;
-		}
-
+        if (!app.isReady()) {
+            logger.error("Taplytics::identify: you have to call Taplytics.init first.", null, logger.USER);
+            return false;
+        }
+        
 		var params = {
 			token: app.token
 		};

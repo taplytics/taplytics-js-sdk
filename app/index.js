@@ -3,6 +3,9 @@ var app = require('./app');
 
 window.Taplytics = module.exports = app;
 
+// Launch functions from the queue if there's one.
+// This queue is created by the async loader.
+
 if (window._TLQueue && window._TLQueue instanceof Array) {
     var queue = window._TLQueue;
 
@@ -15,7 +18,6 @@ if (window._TLQueue && window._TLQueue instanceof Array) {
 
             if (app[func_name] instanceof Function)
                 app[func_name].apply(app, func_args);
-
         }
     }
 

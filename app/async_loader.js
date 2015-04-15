@@ -7,10 +7,11 @@
             Taplytics.loaded = !0;
 
             Taplytics.funcs = [
-            "identify",
-            "pageview",
-            "track",
-            "ready"
+                "identify",
+                "page",
+                "track",
+                "reset",
+                "ready"
             ];
 
             Taplytics.mock = function(f) {
@@ -33,7 +34,7 @@
                 e.type = "text/javascript";
                 e.async= !0;
                 // TODO: do better than a fixed URL here..
-                e.src = "//taplytics.js";
+                e.src = "//localhost:5000/taplytics.js";
 
                 var n = document.getElementsByTagName("script")[0];
                 n.parentNode.insertBefore(e,n);

@@ -12,15 +12,16 @@ module.exports = {
         priority_level = priority;
     },
     log: function(desc, obj, level) {
-        if (!isLoggerEnabled(level))
+        if (level !== undefined && !isLoggerEnabled(level))
             return;
         
         console.log(desc);
+        
         if (obj)
             console.dir(obj);
     },
     error: function(desc, err, level) {
-        if (!isLoggerEnabled(level))
+        if (level !== undefined && !isLoggerEnabled(level))
             return;
 
         console.error(desc);
