@@ -24,7 +24,7 @@ module.exports = function(app) {
 
         app._in.session.start();
 
-        api.users.createUser(app, {}, "Taplytics: Init failed. Taplytics will not function properly.");
+        api.users.post(app, {}, "Taplytics: Init failed. Taplytics will not function properly.");
         return app;
     };
 };

@@ -16,7 +16,7 @@ module.exports = function(app) {
 
         var parsedAttrs = parseAttrs(attrs);
 
-        api.users.createUser(app, parsedAttrs, "Taplytics::identify: failed to save the user attributes properly.");
+        api.users.post(app, parsedAttrs, "Taplytics::identify: failed to save the user attributes properly.");
 
         return app;
     };
