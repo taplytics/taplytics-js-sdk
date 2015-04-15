@@ -3,6 +3,12 @@ var config = require('../../config');
 var logger = require('../lib/logger');
 var Qs = require('qs');
 
+
+module.exports = {
+	get: queueRequest(getRequest),
+	post: queueRequest(postRequest)
+};
+
 var requestsQueue = [];
 var isRequesting = false;
 
@@ -44,13 +50,13 @@ function queueRequest(requestFunction) {
 	};
 }
 
-
 function processQueue() {
 	if (requestsQueue && requestsQueue.length) {
 		isRequesting = true;
 
 		var queueItem = requestsQueue.shift();
 
+		logger.log("Processing request", queueItem, logger.DEBUG);
 		return queueItem && queueItem.requestFunction && queueItem.requestFunction.apply(undefined, queueItem.args);
 	} else {
 		isRequesting = false;
@@ -68,8 +74,3 @@ function queryString(query) {
 
 	return "?" + Qs.stringify(query);
 }
-
-module.exports = {
-	get: queueRequest(getRequest),
-	post: queueRequest(postRequest)
-};

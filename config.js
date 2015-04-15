@@ -1,5 +1,5 @@
 var config = {};
 
-config.baseAPI = "https://api.taplytics.com/v2/";
+config.baseAPI = "http://localhost:3002/public_api/v1/";
 
 module.exports = config;
