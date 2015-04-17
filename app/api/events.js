@@ -1,26 +1,36 @@
+var api = require('./base');
+var config = require('../../config');
 var logger = require('../lib/logger');
+var Queue = require('../lib/queue');
 var events_path = 'events';
 
-module.exports = function(api) {
-	return {
-        queue: queue,
-        post: post
-	};
+var eventTypes = {
+    goal: 'goalAchieved'
 };
 
-var eventsQueue = [];
 
-function queue(event_name, value, attrs) {
+module.exports = {
+    types: eventTypes,
+    goalAchieved: goalAchieved,
+    post: post
+};
+
+var eventsQueue = new Queue();
+
+function goalAchieved(event_name, value, attrs) {
     var eventObject = {
-        name: event_name,
-        value: value,
-        attrs: attrs
+        type: eventTypes.goal,
+        gn: event_name,
+        date: (new Date()).toISOString(),
+        val: value,
+        data: attrs,
+        lv: 1 // TODO: enviornment handling
     };
 
-    return addEventsToQueue([eventObject]);
+    return eventsQueue.enqueue(eventObject);
 }
 
-function post(events, callback) {
+function post(app, events, callback) {
     var params = {
         public_token: app._in.token
     };
@@ -37,7 +47,7 @@ function post(events, callback) {
         return payload;
     };
 
-    api.post(users_path, params, payloadDatum, function(err, response) {
+    api.post(events_path, params, payloadDatum, function(err, response) {
         if (!err)
             logger.log("Taplytics::events.post: succesfully logged events.", response, logger.DEBUG);
         else
@@ -47,37 +57,38 @@ function post(events, callback) {
     });
 }
 
-function flushQueue(app) {
-    var events = eventsQueue.slice();
+function flushQueue() {
+    logger.log("Taplytics::events.flushQueue: tick.", eventsQueue, logger.DEBUG);
 
-    // Flush eventsQueue:
-    eventsQueue = [];
+    var app = window.Taplytics;
 
+    if (!app || (app && !app.isReady())) 
+        return scheduleTick();
+
+    if (eventsQueue.isEmpty())
+        return scheduleTick();
+
+    // Flush eventsQueue.
+    var events = eventsQueue.flush();
     var sessionID = app._in.session.getSessionID();
 
-    // Queue up a session request if we don't have one.
+    // Queue up a session request if we don't have a session ID.
     if (!sessionID)
         api.users.post(app, {}, "Taplytics::events.flushQueue: failed to create sessions. Events will fail to process.", logger.LOG);
 
-    post(events, function(err, response) {
+    post(app, events, function(err, response) {
         if (err) { // Something went wrong. Add them back to the queue!
-            addEventsToQueue(events);
+            eventsQueue.enqueueAll(events);
         }
+
+        scheduleTick();
     });
 }
 
-
-// Helpers
-
-function addEventsToQueue(events) {
-    if (!events || typeof events !== "array")
-        return false;
-
-    var eventIndex = 0;
-
-    for (eventIndex = 0; eventIndex < events.length; eventIndex++) {
-        var eventObject = events[eventIndex];
-
-        eventsQueue.push(eventObject);
-    }
+function scheduleTick() {
+    setTimeout(flushQueue, config.eventsFlushQueueTimeout);
 }
+
+// Initiate flushQueue:
+
+scheduleTick();

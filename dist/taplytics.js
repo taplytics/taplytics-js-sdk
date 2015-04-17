@@ -23,127 +23,223 @@ if (window._TLQueue && window._TLQueue instanceof Array) {
     }
 
 }
-},{"./api":2,"./app":5}],2:[function(require,module,exports){
+},{"./api":2,"./app":6}],2:[function(require,module,exports){
 var base = require('./api/base');
-var users = require('./api/users')(base);
+var users = require('./api/users');
+var events = require('./api/events');
 
 module.exports = {
-	users: users
+	users: users,
+	events: events
 };
-},{"./api/base":3,"./api/users":4}],3:[function(require,module,exports){
+},{"./api/base":3,"./api/events":4,"./api/users":5}],3:[function(require,module,exports){
 var request = require('superagent');
 var config = require('../../config');
 var logger = require('../lib/logger');
+var Queue = require('../lib/queue');
 var Qs = require('qs');
 
 
 module.exports = {
-	get: queueRequest(getRequest),
-	post: queueRequest(postRequest)
+    get: queueRequest(getRequest),
+    post: queueRequest(postRequest)
 };
 
-var requestsQueue = [];
+var requestsQueue = new Queue();
 var isRequesting = false;
 
 // Requests
 function getRequest(path, queryDatum, cb) {
-	var params = getRequestQueryAndPayload(queryDatum);	
-	var url = assembleURL(path, params.query);
+    var params = getRequestQueryAndPayload(queryDatum); 
+    var url = assembleURL(path, params.query);
 
-	request.get(url, callbackWrapper(url, cb));
+    request.get(url, callbackWrapper(url, cb));
 }
 
 function postRequest(path, queryDatum, payloadDatum, cb) {
-	var params = getRequestQueryAndPayload(queryDatum, payloadDatum);	
-	var url = assembleURL(path, params.query);
+    var params = getRequestQueryAndPayload(queryDatum, payloadDatum);   
+    var url = assembleURL(path, params.query);
 
-	request.post(url, params.payload, callbackWrapper(url, cb));
+    request.post(url, params.payload, callbackWrapper(url, cb));
 }
 
 // Processing
 
 function callbackWrapper(url, cb) {
-	return function(err, res) {
-		if (err)
-			logger.error("Error: " + url, err);
+    return function(err, res) {
+        if (err)
+            logger.error("Error: " + url, err);
 
-		if (cb)
-			cb(err, res);
+        if (cb)
+            cb(err, res);
 
-		processQueue();
-	};
+        processQueue();
+    };
 }
 
 function queueRequest(requestFunction) {
-	return function() {
-		requestsQueue.push({
-			requestFunction: requestFunction,
-			args: arguments
-		});
+    return function() {
+        requestsQueue.enqueue({
+            requestFunction: requestFunction,
+            args: arguments
+        });
 
-		if (!isRequesting)
-			processQueue();
-	};
+        if (!isRequesting)
+            processQueue();
+    };
 }
 
 function processQueue() {
-	if (requestsQueue && requestsQueue.length) {
-		isRequesting = true;
+    if (!requestsQueue.isEmpty()) {
+        isRequesting = true;
 
-		var queueItem = requestsQueue.shift();
+        var queueItem = requestsQueue.dequeue();
 
-		logger.log("Processing request", queueItem, logger.DEBUG);
-		return queueItem && queueItem.requestFunction && queueItem.requestFunction.apply(undefined, queueItem.args);
-	} else {
-		isRequesting = false;
-	}
+        logger.log("Processing request", queueItem, logger.DEBUG);
+        return queueItem && queueItem.requestFunction && queueItem.requestFunction.apply(undefined, queueItem.args);
+    } else {
+        isRequesting = false;
+    }
 }
 
 // Helper Methods
 
 function assembleURL(path, query) {
-	return config.baseAPI + (path || '') + queryString(query);
+    return config.baseAPI + (path || '') + queryString(query);
 }
 
 function queryString(query) {
-	if (!query) return '';
+    if (!query) return '';
 
-	return "?" + Qs.stringify(query);
+    return "?" + Qs.stringify(query);
 }
 
 function getRequestQueryAndPayload(queryDatum, payloadDatum) {
-	var query = null;
-	var payload = null;
+    var query = null;
+    var payload = null;
 
-	if (queryDatum && typeof queryDatum == "function")
-		query = queryDatum();
-	else
-		query = queryDatum;
+    if (queryDatum && typeof queryDatum == "function")
+        query = queryDatum();
+    else
+        query = queryDatum;
 
-	if (payloadDatum && typeof payloadDatum == "function")
-		payload = payloadDatum();
-	else
-		payload = payloadDatum;
+    if (payloadDatum && typeof payloadDatum == "function")
+        payload = payloadDatum();
+    else
+        payload = payloadDatum;
 
-	return {
-		query: query,
-		payload: payload
-	};
+    return {
+        query: query,
+        payload: payload
+    };
 }
 
-},{"../../config":13,"../lib/logger":10,"qs":16,"superagent":21}],4:[function(require,module,exports){
+},{"../../config":16,"../lib/logger":12,"../lib/queue":13,"qs":19,"superagent":24}],4:[function(require,module,exports){
+var api = require('./base');
+var config = require('../../config');
+var logger = require('../lib/logger');
+var Queue = require('../lib/queue');
+var events_path = 'events';
+
+var eventTypes = {
+    goal: 'goalAchieved'
+};
+
+
+module.exports = {
+    types: eventTypes,
+    goalAchieved: goalAchieved,
+    post: post
+};
+
+var eventsQueue = new Queue();
+
+function goalAchieved(event_name, value, attrs) {
+    var eventObject = {
+        type: eventTypes.goal,
+        gn: event_name,
+        date: (new Date()).toISOString(),
+        val: value,
+        data: attrs,
+        lv: 1 // TODO: enviornment handling
+    };
+
+    return eventsQueue.enqueue(eventObject);
+}
+
+function post(app, events, callback) {
+    var params = {
+        public_token: app._in.token
+    };
+
+    var payloadDatum = function(even) {
+        var session = {};
+
+        session.sid = app._in.session.getSessionID();
+
+        var payload = {
+            session: session,
+            events: events
+        };
+        return payload;
+    };
+
+    api.post(events_path, params, payloadDatum, function(err, response) {
+        if (!err)
+            logger.log("Taplytics::events.post: succesfully logged events.", response, logger.DEBUG);
+        else
+            logger.error("Taplytics::events.post: failed to log events", err, logger.LOG);
+
+        return callback && callback(err, response);
+    });
+}
+
+function flushQueue() {
+    logger.log("Taplytics::events.flushQueue: tick.", eventsQueue, logger.DEBUG);
+
+    var app = window.Taplytics;
+
+    if (!app || (app && !app.isReady())) 
+        return scheduleTick();
+
+    if (eventsQueue.isEmpty())
+        return scheduleTick();
+
+    // Flush eventsQueue.
+    var events = eventsQueue.flush();
+    var sessionID = app._in.session.getSessionID();
+
+    // Queue up a session request if we don't have a session ID.
+    if (!sessionID)
+        api.users.post(app, {}, "Taplytics::events.flushQueue: failed to create sessions. Events will fail to process.", logger.LOG);
+
+    post(app, events, function(err, response) {
+        if (err) { // Something went wrong. Add them back to the queue!
+            eventsQueue.enqueueAll(events);
+        }
+
+        scheduleTick();
+    });
+}
+
+function scheduleTick() {
+    setTimeout(flushQueue, config.eventsFlushQueueTimeout);
+}
+
+// Initiate flushQueue:
+
+scheduleTick();
+},{"../../config":16,"../lib/logger":12,"../lib/queue":13,"./base":3}],5:[function(require,module,exports){
 var location = require('../lib/location');
 var platform = require('platform');
 var source = require('../lib/source');
 var logger = require('../lib/logger');
-
+var api = require('./base');
 
 var users_path = 'users';
 
-module.exports = function(api) {
-    return {
-        post: post
-    };
+module.exports = {
+    post: post
 };
 
 // Requests
@@ -160,7 +256,7 @@ function post(app, user_attrs, failure_message, callback) {
     session.ad  = app._in.session.getSessionUUID();
     session.adt = 'browser';
     session.ct  = 'browser';
-    session.lv  = false; // liveUpdate
+    session.lv  = '0'; // liveUpdate TODO: handle enviornment
     session.rfr = sourceData.referrer;
     session.prms = {
         search: sourceData.search,
@@ -215,16 +311,17 @@ function post(app, user_attrs, failure_message, callback) {
     });
 }
 
-},{"../lib/location":9,"../lib/logger":10,"../lib/source":11,"platform":15}],5:[function(require,module,exports){
+},{"../lib/location":11,"../lib/logger":12,"../lib/source":14,"./base":3,"platform":18}],6:[function(require,module,exports){
 var Taplytics = {};
 
 
 Taplytics.init = require('./functions/init')(Taplytics);
 Taplytics.isReady = require('./functions/isReady')(Taplytics);
 Taplytics.identify = require('./functions/identify')(Taplytics);
+Taplytics.track = require('./functions/track')(Taplytics);
 
 module.exports = Taplytics;
-},{"./functions/identify":6,"./functions/init":7,"./functions/isReady":8}],6:[function(require,module,exports){
+},{"./functions/identify":7,"./functions/init":8,"./functions/isReady":9,"./functions/track":10}],7:[function(require,module,exports){
 var logger = require('../lib/logger');
 var api = require('../api');
 
@@ -322,7 +419,7 @@ function isTopLevelKey(key) {
     };
 }
 
-},{"../api":2,"../lib/logger":10}],7:[function(require,module,exports){
+},{"../api":2,"../lib/logger":12}],8:[function(require,module,exports){
 var logger = require('../lib/logger');
 var api = require('../api');
 
@@ -368,7 +465,7 @@ function isValidToken(token) {
 
     return true;
 }
-},{"../api":2,"../lib/logger":10,"../session":12}],8:[function(require,module,exports){
+},{"../api":2,"../lib/logger":12,"../session":15}],9:[function(require,module,exports){
 var logger = require('../lib/logger');
 var api = require('../api');
 
@@ -390,7 +487,38 @@ module.exports = function(app) {
     };
 };
 
-},{"../api":2,"../lib/logger":10}],9:[function(require,module,exports){
+},{"../api":2,"../lib/logger":12}],10:[function(require,module,exports){
+var logger = require('../lib/logger');
+var api = require('../api');
+
+module.exports = function(app) {
+    return function(event_name, value, attrs) {
+        if (!app.isReady()) {
+            logger.error("Taplytics::track: you have to call Taplytics.init first.", null, logger.USER);
+            return false;
+        }
+
+        if (!event_name) {
+            logger.error("Taplytics::track: you have to specify an event name.", null, logger.USER);
+            return false;
+        }
+
+        var val = value;
+        var attributes = attrs;
+
+        if (typeof value === 'object' && !attrs) { // for when function is used as (event_name, attrs)
+            val = undefined;
+            attributes = value;
+        }
+        
+        api.events.goalAchieved(event_name, val, attributes);
+
+        app._in.session.tick(); // tick the session
+
+        return app;
+    };
+};
+},{"../api":2,"../lib/logger":12}],11:[function(require,module,exports){
 module.exports = function() {
     return {
       href: document.location.href,
@@ -401,7 +529,7 @@ module.exports = function() {
     };
 };
 
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var priority_level = 0; // 2: debug, 1: log, 0: quiet (big error only)
 
 function isLoggerEnabled(level) {
@@ -434,7 +562,62 @@ module.exports = {
             console.dir(err);
     }
 };
-},{}],11:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
+function Queue() {
+
+    var queue  = [];
+
+    this.length = function() {
+        return queue.length
+    };
+
+    this.isEmpty = function() {
+        return (queue.length === 0);
+    };
+
+    this.enqueue = function(item) {
+        queue.push(item);
+    };
+
+    this.enqueueAll = function(items) {
+        if (!items || (items && typeof items !== "array"))
+            return 0;
+
+        var index = 0;
+
+        for (index = 0; index < items.length; index++) {
+            var item = items[index];
+
+            this.enqueue(item);
+        }
+
+        return items.length;
+    };
+
+    this.dequeue = function() {
+        if (queue.length == 0) return undefined;
+
+        var item = queue.shift();
+
+        return item;
+    };
+
+    this.flush = function() {
+        var oldQueue = queue.slice();
+
+        queue = [];
+
+        return oldQueue;
+    };
+
+    this.peek = function() {
+        return (queue.length > 0 ? queue[0] : undefined);
+    };
+}
+
+
+module.exports = Queue;
+},{}],14:[function(require,module,exports){
 var Qs = require('qs');
 
 module.exports = function() {
@@ -454,7 +637,7 @@ module.exports = function() {
 
 	return source;
 };
-},{"qs":16}],12:[function(require,module,exports){
+},{"qs":19}],15:[function(require,module,exports){
 var logger = require('./lib/logger');
 
 var Cookies = require('cookies-js');
@@ -589,14 +772,15 @@ function dateAdd(date, interval, units) { // Thank you SO: http://stackoverflow.
   }
   return ret;
 }
-},{"./lib/logger":10,"cookies-js":14,"uuid":25}],13:[function(require,module,exports){
+},{"./lib/logger":12,"cookies-js":17,"uuid":28}],16:[function(require,module,exports){
 var config = {};
 
 config.baseAPI = "http://localhost:3002/public_api/v1/";
+config.eventsFlushQueueTimeout = 4000;
 
 module.exports = config;
 
-},{}],14:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /*
  * Cookies.js - 1.2.1
  * https://github.com/ScottHamper/Cookies
@@ -758,7 +942,7 @@ module.exports = config;
         global.Cookies = cookiesExport;
     }
 })(typeof window === 'undefined' ? this : window);
-},{}],15:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 (function (global){
 /*!
  * Platform.js v1.3.0 <http://mths.be/platform>
@@ -1897,10 +2081,10 @@ module.exports = config;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],16:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 module.exports = require('./lib/');
 
-},{"./lib/":17}],17:[function(require,module,exports){
+},{"./lib/":20}],20:[function(require,module,exports){
 // Load modules
 
 var Stringify = require('./stringify');
@@ -1917,7 +2101,7 @@ module.exports = {
     parse: Parse
 };
 
-},{"./parse":18,"./stringify":19}],18:[function(require,module,exports){
+},{"./parse":21,"./stringify":22}],21:[function(require,module,exports){
 // Load modules
 
 var Utils = require('./utils');
@@ -2080,7 +2264,7 @@ module.exports = function (str, options) {
     return Utils.compact(obj);
 };
 
-},{"./utils":20}],19:[function(require,module,exports){
+},{"./utils":23}],22:[function(require,module,exports){
 // Load modules
 
 var Utils = require('./utils');
@@ -2179,7 +2363,7 @@ module.exports = function (obj, options) {
     return keys.join(delimiter);
 };
 
-},{"./utils":20}],20:[function(require,module,exports){
+},{"./utils":23}],23:[function(require,module,exports){
 // Load modules
 
 
@@ -2313,7 +2497,7 @@ exports.isBuffer = function (obj) {
         obj.constructor.isBuffer(obj));
 };
 
-},{}],21:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -3426,7 +3610,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":22,"reduce":23}],22:[function(require,module,exports){
+},{"emitter":25,"reduce":26}],25:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -3592,7 +3776,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],23:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -3617,7 +3801,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],24:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 (function (global){
 
 var rng;
@@ -3652,7 +3836,7 @@ module.exports = rng;
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],25:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 //     uuid.js
 //
 //     Copyright (c) 2010-2012 Robert Kieffer
@@ -3837,4 +4021,4 @@ uuid.unparse = unparse;
 
 module.exports = uuid;
 
-},{"./rng":24}]},{},[1]);
+},{"./rng":27}]},{},[1]);

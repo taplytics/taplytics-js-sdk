@@ -2,14 +2,12 @@ var location = require('../lib/location');
 var platform = require('platform');
 var source = require('../lib/source');
 var logger = require('../lib/logger');
-
+var api = require('./base');
 
 var users_path = 'users';
 
-module.exports = function(api) {
-    return {
-        post: post
-    };
+module.exports = {
+    post: post
 };
 
 // Requests
@@ -26,7 +24,7 @@ function post(app, user_attrs, failure_message, callback) {
     session.ad  = app._in.session.getSessionUUID();
     session.adt = 'browser';
     session.ct  = 'browser';
-    session.lv  = false; // liveUpdate
+    session.lv  = '0'; // liveUpdate TODO: handle enviornment
     session.rfr = sourceData.referrer;
     session.prms = {
         search: sourceData.search,

@@ -7,6 +7,7 @@
             Taplytics.loaded = !0;
 
             Taplytics.funcs = [
+                "init",
                 "identify",
                 "page",
                 "track",

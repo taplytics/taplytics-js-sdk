@@ -1,6 +1,8 @@
 var base = require('./api/base');
-var users = require('./api/users')(base);
+var users = require('./api/users');
+var events = require('./api/events');
 
 module.exports = {
-	users: users
+	users: users,
+	events: events
 };
