@@ -2,16 +2,12 @@ var location = require('../lib/location');
 var platform = require('platform');
 var source = require('../lib/source');
 var logger = require('../lib/logger');
-var api = require('./base');
+var api = require('../api');
 
 var users_path = 'users';
 
-module.exports = {
-    post: post
-};
-
 // Requests
-function post(app, user_attrs, failure_message, callback) {
+exports.post = function(app, user_attrs, failure_message, callback) {
     var locationData = location(); // document.location
     var sourceData = source(); // documen.referrer + location.search
     var appUser = user_attrs;
@@ -55,7 +51,7 @@ function post(app, user_attrs, failure_message, callback) {
 
     logger.log("users_post", payload, logger.DEBUG);
 
-    api.post(users_path, params, payload, function(err, response) {
+    api.request.post(users_path, params, payload, function(err, response) {
         if (err) {
             logger.error(failure_message, err, logger.USER);
         } else {
@@ -77,4 +73,4 @@ function post(app, user_attrs, failure_message, callback) {
 
         return callback && callback(err, response);
     });
-}
+};

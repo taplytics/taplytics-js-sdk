@@ -24,14 +24,9 @@ if (window._TLQueue && window._TLQueue instanceof Array) {
 
 }
 },{"./api":2,"./app":6}],2:[function(require,module,exports){
-var base = require('./api/base');
-var users = require('./api/users');
-var events = require('./api/events');
-
-module.exports = {
-	users: users,
-	events: events
-};
+exports.request = require('./api/base');
+exports.users = require('./api/users');
+exports.events = require('./api/events');
 },{"./api/base":3,"./api/events":4,"./api/users":5}],3:[function(require,module,exports){
 var request = require('superagent');
 var config = require('../../config');
@@ -40,10 +35,8 @@ var Queue = require('../lib/queue');
 var Qs = require('qs');
 
 
-module.exports = {
-    get: queueRequest(getRequest),
-    post: queueRequest(postRequest)
-};
+exports.get  = queueRequest(getRequest);
+exports.post = queueRequest(postRequest);
 
 var requestsQueue = new Queue();
 var isRequesting = false;
@@ -135,26 +128,21 @@ function getRequestQueryAndPayload(queryDatum, payloadDatum) {
 }
 
 },{"../../config":16,"../lib/logger":12,"../lib/queue":13,"qs":19,"superagent":24}],4:[function(require,module,exports){
-var api = require('./base');
+var api = require('../api');
 var config = require('../../config');
 var logger = require('../lib/logger');
 var Queue = require('../lib/queue');
 var events_path = 'events';
 
+var eventsQueue = new Queue();
 var eventTypes = {
     goal: 'goalAchieved'
 };
 
 
-module.exports = {
-    types: eventTypes,
-    goalAchieved: goalAchieved,
-    post: post
-};
+exports.types = eventTypes;
 
-var eventsQueue = new Queue();
-
-function goalAchieved(event_name, value, attrs) {
+exports.goalAchieved = function(event_name, value, attrs) {
     var eventObject = {
         type: eventTypes.goal,
         gn: event_name,
@@ -165,9 +153,9 @@ function goalAchieved(event_name, value, attrs) {
     };
 
     return eventsQueue.enqueue(eventObject);
-}
+};
 
-function post(app, events, callback) {
+exports.post = function(app, events, callback) {
     var params = {
         public_token: app._in.token
     };
@@ -184,7 +172,7 @@ function post(app, events, callback) {
         return payload;
     };
 
-    api.post(events_path, params, payloadDatum, function(err, response) {
+    api.request.post(events_path, params, payloadDatum, function(err, response) {
         if (!err)
             logger.log("Taplytics::events.post: succesfully logged events.", response, logger.DEBUG);
         else
@@ -192,7 +180,9 @@ function post(app, events, callback) {
 
         return callback && callback(err, response);
     });
-}
+};
+
+// Internal functions
 
 function flushQueue() {
     logger.log("Taplytics::events.flushQueue: tick.", eventsQueue, logger.DEBUG);
@@ -229,21 +219,17 @@ function scheduleTick() {
 // Initiate flushQueue:
 
 scheduleTick();
-},{"../../config":16,"../lib/logger":12,"../lib/queue":13,"./base":3}],5:[function(require,module,exports){
+},{"../../config":16,"../api":2,"../lib/logger":12,"../lib/queue":13}],5:[function(require,module,exports){
 var location = require('../lib/location');
 var platform = require('platform');
 var source = require('../lib/source');
 var logger = require('../lib/logger');
-var api = require('./base');
+var api = require('../api');
 
 var users_path = 'users';
 
-module.exports = {
-    post: post
-};
-
 // Requests
-function post(app, user_attrs, failure_message, callback) {
+exports.post = function(app, user_attrs, failure_message, callback) {
     var locationData = location(); // document.location
     var sourceData = source(); // documen.referrer + location.search
     var appUser = user_attrs;
@@ -287,7 +273,7 @@ function post(app, user_attrs, failure_message, callback) {
 
     logger.log("users_post", payload, logger.DEBUG);
 
-    api.post(users_path, params, payload, function(err, response) {
+    api.request.post(users_path, params, payload, function(err, response) {
         if (err) {
             logger.error(failure_message, err, logger.USER);
         } else {
@@ -309,9 +295,9 @@ function post(app, user_attrs, failure_message, callback) {
 
         return callback && callback(err, response);
     });
-}
+};
 
-},{"../lib/location":11,"../lib/logger":12,"../lib/source":14,"./base":3,"platform":18}],6:[function(require,module,exports){
+},{"../api":2,"../lib/location":11,"../lib/logger":12,"../lib/source":14,"platform":18}],6:[function(require,module,exports){
 var Taplytics = {};
 
 

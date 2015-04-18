@@ -1,8 +1,3 @@
-var base = require('./api/base');
-var users = require('./api/users');
-var events = require('./api/events');
-
-module.exports = {
-	users: users,
-	events: events
-};
+exports.request = require('./api/base');
+exports.users = require('./api/users');
+exports.events = require('./api/events');

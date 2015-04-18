@@ -5,10 +5,8 @@ var Queue = require('../lib/queue');
 var Qs = require('qs');
 
 
-module.exports = {
-    get: queueRequest(getRequest),
-    post: queueRequest(postRequest)
-};
+exports.get  = queueRequest(getRequest);
+exports.post = queueRequest(postRequest);
 
 var requestsQueue = new Queue();
 var isRequesting = false;

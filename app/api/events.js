@@ -1,23 +1,18 @@
-var api = require('./base');
+var api = require('../api');
 var config = require('../../config');
 var logger = require('../lib/logger');
 var Queue = require('../lib/queue');
 var events_path = 'events';
 
+var eventsQueue = new Queue();
 var eventTypes = {
     goal: 'goalAchieved'
 };
 
 
-module.exports = {
-    types: eventTypes,
-    goalAchieved: goalAchieved,
-    post: post
-};
+exports.types = eventTypes;
 
-var eventsQueue = new Queue();
-
-function goalAchieved(event_name, value, attrs) {
+exports.goalAchieved = function(event_name, value, attrs) {
     var eventObject = {
         type: eventTypes.goal,
         gn: event_name,
@@ -28,9 +23,9 @@ function goalAchieved(event_name, value, attrs) {
     };
 
     return eventsQueue.enqueue(eventObject);
-}
+};
 
-function post(app, events, callback) {
+exports.post = function(app, events, callback) {
     var params = {
         public_token: app._in.token
     };
@@ -47,7 +42,7 @@ function post(app, events, callback) {
         return payload;
     };
 
-    api.post(events_path, params, payloadDatum, function(err, response) {
+    api.request.post(events_path, params, payloadDatum, function(err, response) {
         if (!err)
             logger.log("Taplytics::events.post: succesfully logged events.", response, logger.DEBUG);
         else
@@ -55,7 +50,9 @@ function post(app, events, callback) {
 
         return callback && callback(err, response);
     });
-}
+};
+
+// Internal functions
 
 function flushQueue() {
     logger.log("Taplytics::events.flushQueue: tick.", eventsQueue, logger.DEBUG);
