@@ -144,7 +144,7 @@ function flushQueue() {
 
     // Queue up a session request if we don't have a session ID.
     if (!sessionID)
-        api.users.post(app, {}, "Taplytics::events.flushQueue: failed to create sessions. Events will fail to process.", logger.LOG);
+        api.users.post(app, {}, "Taplytics::events.flushQueue: failed to create sessions. Events will fail to process.");
 
     exports.post(app, events, function(err, response) {
         if (err) { // Something went wrong. Add them back to the queue!
