@@ -9,10 +9,54 @@ var events_path = 'events';
 var eventsQueue = new Queue();
 var eventTypes = {
     goal: 'goalAchieved',
-    pageView: 'viewAppeared'
+    pageView: 'viewAppeared',
+    pageClose: 'viewDisappeared',
+    timeOnPage: 'viewTimeOnPage'
 };
 
 exports.types = eventTypes;
+
+exports.timeOnPage = function(category, name, href, title, location, startDate) {
+    var eventObject = defaultEventObject(eventTypes.timeOnPage);
+
+    if (startDate && startDate.getTime) {
+        var nowTime = (new Date()).getTime();
+        var startTime = startDate.getTime();
+
+        var timePast = (nowTime - startTime) / 1000;
+
+        eventObject.val = timePast;
+    }
+
+    eventObject.vKey = name;
+    eventObject.tKey = category;
+    eventObject.tvKey = title;
+    eventObject.tvCl = href;
+
+    if (location)
+        eventObject.data = merge(eventObject.data || {}, {
+            _tl_view: location
+        });
+
+    return eventsQueue.enqueue(eventObject);
+};
+
+exports.pageClose = function(category, name, href, title, location) {
+    var eventObject = defaultEventObject(eventTypes.pageClose);
+
+    eventObject.val  = (new Date()).toISOString();
+    eventObject.vKey = name;
+    eventObject.tKey = category;
+    eventObject.tvKey = title;
+    eventObject.tvCl = href;
+
+    if (location)
+        eventObject.data = merge(eventObject.data || {}, {
+            _tl_view: location
+        });
+    
+    return eventsQueue.enqueue(eventObject);
+};
 
 exports.pageView = function(category, name, attrs) {
     var eventObject = defaultEventObject(eventTypes.pageView);
@@ -33,8 +77,10 @@ exports.goalAchieved = function(event_name, value, attrs) {
     if (attrs)
         eventObject.data = merge(eventObject.data, attrs);
 
+    if (value)
+        eventObject.val = value;
+
     eventObject.gn = event_name;
-    eventObject.val = value;
 
     return eventsQueue.enqueue(eventObject);
 };

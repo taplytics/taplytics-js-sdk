@@ -24,7 +24,6 @@ module.exports = function(app) {
   
         app._in.session.tick(); // tick the session
 
-
         api.events.goalAchieved(event_name, val, attributes);
 
         return app;

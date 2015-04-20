@@ -139,10 +139,54 @@ var events_path = 'events';
 var eventsQueue = new Queue();
 var eventTypes = {
     goal: 'goalAchieved',
-    pageView: 'viewAppeared'
+    pageView: 'viewAppeared',
+    pageClose: 'viewDisappeared',
+    timeOnPage: 'viewTimeOnPage'
 };
 
 exports.types = eventTypes;
+
+exports.timeOnPage = function(category, name, href, title, location, startDate) {
+    var eventObject = defaultEventObject(eventTypes.timeOnPage);
+
+    if (startDate && startDate.getTime) {
+        var nowTime = (new Date()).getTime();
+        var startTime = startDate.getTime();
+
+        var timePast = (nowTime - startTime) / 1000;
+
+        eventObject.val = timePast;
+    }
+
+    eventObject.vKey = name;
+    eventObject.tKey = category;
+    eventObject.tvKey = title;
+    eventObject.tvCl = href;
+
+    if (location)
+        eventObject.data = merge(eventObject.data || {}, {
+            _tl_view: location
+        });
+
+    return eventsQueue.enqueue(eventObject);
+};
+
+exports.pageClose = function(category, name, href, title, location) {
+    var eventObject = defaultEventObject(eventTypes.pageClose);
+
+    eventObject.val  = (new Date()).toISOString();
+    eventObject.vKey = name;
+    eventObject.tKey = category;
+    eventObject.tvKey = title;
+    eventObject.tvCl = href;
+
+    if (location)
+        eventObject.data = merge(eventObject.data || {}, {
+            _tl_view: location
+        });
+    
+    return eventsQueue.enqueue(eventObject);
+};
 
 exports.pageView = function(category, name, attrs) {
     var eventObject = defaultEventObject(eventTypes.pageView);
@@ -163,8 +207,10 @@ exports.goalAchieved = function(event_name, value, attrs) {
     if (attrs)
         eventObject.data = merge(eventObject.data, attrs);
 
+    if (value)
+        eventObject.val = value;
+
     eventObject.gn = event_name;
-    eventObject.val = value;
 
     return eventsQueue.enqueue(eventObject);
 };
@@ -521,6 +567,15 @@ var location = require('../lib/location');
 
 var currentView = null;
 
+var sessionConfigOptions = {
+    previous_page_href: 'previous_page_location_href',
+    previous_page_title: 'previous_page_location_title',
+    previous_page_location: 'previous_page_location',
+    previous_page_name: 'previous_page_name',
+    previous_page_category: 'previous_page_category',
+    previous_page_view_date: 'previous_page_view_date'
+};
+
 module.exports = function(app) {
     return function(category, name, attrs) {
         if (!app.isReady()) {
@@ -531,6 +586,7 @@ module.exports = function(app) {
         var cat_name = category;
         var view_name = name;
         var attributes = attrs;
+        var session = app._in.session;
 
         if (typeof name === 'object' && !attrs) { // for when function is used as (name, attrs)
             cat_name = undefined;
@@ -538,15 +594,78 @@ module.exports = function(app) {
             attributes = name;
         }
 
-        app._in.session.tick(); // tick the session
+        session.tick(); // tick the session
+
+        // If we have a previous page in the session:
+        // 1. Send a page close (viewDisappeared) event
+        // 2. Send a time on page (viewTimeOnPage) event
+        // 3. Clean up session and set the new page to the current one
+
+        if (session.get(sessionConfigOptions.previous_page_href)) {
+            var opts = getPreviousPage(session);
+
+            api.events.pageClose(opts.category, 
+                                 opts.name,
+                                 opts.href,
+                                 opts.title,
+                                 opts.location);
+            
+            api.events.timeOnPage(opts.category,
+                                  opts.name,
+                                  opts.href,
+                                  opts.title,
+                                  opts.location,
+                                  opts.view_date);
+
+            unsetPreviousPage(session);
+        }
 
         api.events.pageView(cat_name,
                             view_name,
                             attributes);
 
+        setPreviousPage(session, cat_name, view_name);
         return app;
     };
 };
+
+
+// Helper functions
+
+function getPreviousPage(session) {
+    var view_date = session.get(sessionConfigOptions.previous_page_view_date);
+
+    if (view_date)
+        view_date = new Date(view_date);
+
+    return {
+        category: session.get(sessionConfigOptions.previous_page_category), 
+        name: session.get(sessionConfigOptions.previous_page_name),
+        href: session.get(sessionConfigOptions.previous_page_href),
+        title: session.get(sessionConfigOptions.previous_page_title),
+        location: session.get(sessionConfigOptions.previous_page_location, JSON && JSON.parse),
+        view_date: view_date
+    };
+}
+
+function setPreviousPage(session, category, name) {
+    session.set(sessionConfigOptions.previous_page_category, category);
+    session.set(sessionConfigOptions.previous_page_name, name);
+    session.set(sessionConfigOptions.previous_page_href, location.attr('href'));
+    session.set(sessionConfigOptions.previous_page_title, location.attr('title'));
+    session.set(sessionConfigOptions.previous_page_location, location.toObject(), JSON && JSON.stringify);
+    session.set(sessionConfigOptions.previous_page_view_date, (new Date()).toISOString());
+}
+
+function unsetPreviousPage(session) {
+    session.unset(sessionConfigOptions.previous_page_category);
+    session.unset(sessionConfigOptions.previous_page_name);
+    session.unset(sessionConfigOptions.previous_page_href);
+    session.unset(sessionConfigOptions.previous_page_title);
+    session.unset(sessionConfigOptions.previous_page_location);
+    session.unset(sessionConfigOptions.previous_page_view_date);
+}
+
 },{"../api":2,"../lib/location":12,"../lib/logger":13}],11:[function(require,module,exports){
 var logger = require('../lib/logger');
 var api = require('../api');
@@ -574,12 +693,12 @@ module.exports = function(app) {
   
         app._in.session.tick(); // tick the session
 
-
         api.events.goalAchieved(event_name, val, attributes);
 
         return app;
     };
 };
+
 },{"../api":2,"../lib/logger":13}],12:[function(require,module,exports){
 var swizzle = require('../lib/swizzle');
 var logger = require('./logger');
@@ -821,7 +940,7 @@ module.exports = function(app) {
         sessionID: '_tl_sid_' + app.token,
         appUserID: '_tl_auid_' + app.token,
         sessionOptions: function(sessionID, key) {
-            if (!sessionID || key)
+            if (!sessionID || !key)
                 return null;
 
             return 'tl_sopts_' + app.token + '_' + sessionID + '_' + key;
@@ -846,7 +965,7 @@ module.exports = function(app) {
 
     // Sets a session variable (only accessible during this session)
 
-    Session.get = function(key) {
+    Session.get = function(key, is_json) {
         if (!key)
             return undefined;
 
@@ -854,12 +973,18 @@ module.exports = function(app) {
 
         var sessionID = Session.getCookieSessionID();
         var cookieKey = cookieConfig.sessionOptions(sessionID, key);
+
+        if (!cookieKey)
+            return undefined;
         
-        return Cookies.get(cookieKey);
+        if (!is_json || !(JSON && JSON.parse))
+            return Cookies.get(cookieKey);
+        else
+            return JSON.parse(Cookies.get(cookieKey));
     };
 
-    Session.set = function(key, value) {
-        if (!key)
+    Session.set = function(key, value, is_json) {
+        if (!key || value === undefined)
             return false;
 
         Session.tick();
@@ -867,8 +992,15 @@ module.exports = function(app) {
         var sessionID = Session.getCookieSessionID();
         var cookieKey = cookieConfig.sessionOptions(sessionID, key);
         var expirationDate = dateAdd(new Date(), 'minute', 30); // 30 minute expiration
+        var clean_value = value;
 
-        Cookies.set(cookieKey, value, {
+        if (!cookieKey)
+            return false;
+
+        if (is_json && JSON && JSON.stringify)
+            clean_value = JSON.stringify(value);
+
+        Cookies.set(cookieKey, clean_value, {
             expires: expirationDate
         });
 
@@ -985,6 +1117,7 @@ function dateAdd(date, interval, units) { // Thank you SO: http://stackoverflow.
   }
   return ret;
 }
+
 },{"./lib/logger":13,"cookies-js":20,"uuid":31}],19:[function(require,module,exports){
 var config = {};
 

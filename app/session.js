@@ -18,7 +18,7 @@ module.exports = function(app) {
         sessionID: '_tl_sid_' + app.token,
         appUserID: '_tl_auid_' + app.token,
         sessionOptions: function(sessionID, key) {
-            if (!sessionID || key)
+            if (!sessionID || !key)
                 return null;
 
             return 'tl_sopts_' + app.token + '_' + sessionID + '_' + key;
@@ -43,7 +43,7 @@ module.exports = function(app) {
 
     // Sets a session variable (only accessible during this session)
 
-    Session.get = function(key) {
+    Session.get = function(key, is_json) {
         if (!key)
             return undefined;
 
@@ -51,12 +51,18 @@ module.exports = function(app) {
 
         var sessionID = Session.getCookieSessionID();
         var cookieKey = cookieConfig.sessionOptions(sessionID, key);
+
+        if (!cookieKey)
+            return undefined;
         
-        return Cookies.get(cookieKey);
+        if (!is_json || !(JSON && JSON.parse))
+            return Cookies.get(cookieKey);
+        else
+            return JSON.parse(Cookies.get(cookieKey));
     };
 
-    Session.set = function(key, value) {
-        if (!key)
+    Session.set = function(key, value, is_json) {
+        if (!key || value === undefined)
             return false;
 
         Session.tick();
@@ -64,8 +70,15 @@ module.exports = function(app) {
         var sessionID = Session.getCookieSessionID();
         var cookieKey = cookieConfig.sessionOptions(sessionID, key);
         var expirationDate = dateAdd(new Date(), 'minute', 30); // 30 minute expiration
+        var clean_value = value;
 
-        Cookies.set(cookieKey, value, {
+        if (!cookieKey)
+            return false;
+
+        if (is_json && JSON && JSON.stringify)
+            clean_value = JSON.stringify(value);
+
+        Cookies.set(cookieKey, clean_value, {
             expires: expirationDate
         });
 
