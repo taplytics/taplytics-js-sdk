@@ -5,12 +5,12 @@ var location = require('../lib/location');
 var currentView = null;
 
 var sessionConfigOptions = {
-    previous_page_href: 'previous_page_location_href',
-    previous_page_title: 'previous_page_location_title',
-    previous_page_location: 'previous_page_location',
-    previous_page_name: 'previous_page_name',
-    previous_page_category: 'previous_page_category',
-    previous_page_view_date: 'previous_page_view_date'
+    previous_page_href: 'p_p_l_h',
+    previous_page_title: 'p_p_l_t',
+    previous_page_location: 'p_p_l',
+    previous_page_name: 'p_p_n',
+    previous_page_category: 'p_p_c',
+    previous_page_view_date: 'p_p_v_d'
 };
 
 module.exports = function(app) {

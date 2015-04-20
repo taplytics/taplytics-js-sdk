@@ -1,4 +1,5 @@
 var gulp = require('gulp');
+var _ = require('lodash');
 var browserify = require('browserify');
 var watchify = require('watchify');
 var config   = require('../config');
@@ -11,7 +12,9 @@ gulp.task('browserify:development', function() {
 
   var bundler;
 
-  bundler = watchify(browserify(config.sourceDirectory + '/' + config.sourceEntry, watchify.args));
+  bundler = watchify(browserify(config.sourceDirectory + '/' + config.sourceEntry, _.merge(watchify.args, {
+    fullPaths: true
+  })));
 
   bundler.on('update', bundle);
 

@@ -3,5 +3,5 @@ var gulpSequence = require('gulp-sequence');
 
 gulp.task('build:production', function(cb) {
   process.env.NODE_ENV = 'production';
-  gulpSequence('clean', ['webpack:production'], cb);
+  gulpSequence('clean', ['browserify:production'], cb);
 });

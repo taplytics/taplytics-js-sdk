@@ -1,5 +1,4 @@
 var location = require('../lib/location');
-var platform = require('platform');
 var source = require('../lib/source');
 var logger = require('../lib/logger');
 var api = require('../api');
@@ -25,18 +24,8 @@ exports.post = function(app, user_attrs, failure_message, callback) {
     session.prms = {
         search: sourceData.search,
         location: locationData,
-        platform: platform
+        userAgent: navigator.userAgent
     };
-
-    if (platform) {
-        session.os = platform.os.family;
-        session.osv = platform.os.version;
-        session.ma = platform.manufacturer;
-        session.br = platform.product;
-        session.bron = platform.name;
-        session.brov = platform.version;
-        session.brol = platform.layout;
-    }
 
     appUser.auid = app._in.session.getAppUserID();
 
