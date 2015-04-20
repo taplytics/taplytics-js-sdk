@@ -127,30 +127,44 @@ function getRequestQueryAndPayload(queryDatum, payloadDatum) {
     };
 }
 
-},{"../../config":16,"../lib/logger":12,"../lib/queue":13,"qs":19,"superagent":24}],4:[function(require,module,exports){
+},{"../../config":19,"../lib/logger":13,"../lib/queue":15,"qs":22,"superagent":27}],4:[function(require,module,exports){
 var api = require('../api');
 var config = require('../../config');
 var logger = require('../lib/logger');
+var merge = require('../lib/merge');
+var location = require('../lib/location');
 var Queue = require('../lib/queue');
 var events_path = 'events';
 
 var eventsQueue = new Queue();
 var eventTypes = {
-    goal: 'goalAchieved'
+    goal: 'goalAchieved',
+    pageView: 'viewAppeared'
 };
-
 
 exports.types = eventTypes;
 
+exports.pageView = function(category, name, attrs) {
+    var eventObject = defaultEventObject(eventTypes.pageView);
+
+    if (attrs)
+        eventObject.data = merge(eventObject.data, attrs);
+
+    eventObject.val = (new Date()).toISOString();
+    eventObject.vKey = name;
+    eventObject.tKey = category;
+
+    return eventsQueue.enqueue(eventObject);
+};
+
 exports.goalAchieved = function(event_name, value, attrs) {
-    var eventObject = {
-        type: eventTypes.goal,
-        gn: event_name,
-        date: (new Date()).toISOString(),
-        val: value,
-        data: attrs,
-        lv: 1 // TODO: enviornment handling
-    };
+    var eventObject = defaultEventObject(eventTypes.goal);
+
+    if (attrs)
+        eventObject.data = merge(eventObject.data, attrs);
+
+    eventObject.gn = event_name;
+    eventObject.val = value;
 
     return eventsQueue.enqueue(eventObject);
 };
@@ -184,6 +198,19 @@ exports.post = function(app, events, callback) {
 
 // Internal functions
 
+function defaultEventObject(type) {
+    return {
+        type: type,
+        date: (new Date()).toISOString(),
+        tvKey: location.attr('title'),
+        tvCl: location.attr('href'),
+        prod: 1, // TODO: env handling
+        data: {
+            _tl_view: location.toObject()
+        }
+    };
+}
+
 function flushQueue() {
     logger.log("Taplytics::events.flushQueue: tick.", eventsQueue, logger.DEBUG);
 
@@ -203,7 +230,7 @@ function flushQueue() {
     if (!sessionID)
         api.users.post(app, {}, "Taplytics::events.flushQueue: failed to create sessions. Events will fail to process.", logger.LOG);
 
-    post(app, events, function(err, response) {
+    exports.post(app, events, function(err, response) {
         if (err) { // Something went wrong. Add them back to the queue!
             eventsQueue.enqueueAll(events);
         }
@@ -219,7 +246,8 @@ function scheduleTick() {
 // Initiate flushQueue:
 
 scheduleTick();
-},{"../../config":16,"../api":2,"../lib/logger":12,"../lib/queue":13}],5:[function(require,module,exports){
+
+},{"../../config":19,"../api":2,"../lib/location":12,"../lib/logger":13,"../lib/merge":14,"../lib/queue":15}],5:[function(require,module,exports){
 var location = require('../lib/location');
 var platform = require('platform');
 var source = require('../lib/source');
@@ -230,7 +258,7 @@ var users_path = 'users';
 
 // Requests
 exports.post = function(app, user_attrs, failure_message, callback) {
-    var locationData = location(); // document.location
+    var locationData = location.toObject(); // document.location
     var sourceData = source(); // documen.referrer + location.search
     var appUser = user_attrs;
     var session = {};
@@ -297,7 +325,7 @@ exports.post = function(app, user_attrs, failure_message, callback) {
     });
 };
 
-},{"../api":2,"../lib/location":11,"../lib/logger":12,"../lib/source":14,"platform":18}],6:[function(require,module,exports){
+},{"../api":2,"../lib/location":12,"../lib/logger":13,"../lib/source":16,"platform":21}],6:[function(require,module,exports){
 var Taplytics = {};
 
 
@@ -305,9 +333,10 @@ Taplytics.init = require('./functions/init')(Taplytics);
 Taplytics.isReady = require('./functions/isReady')(Taplytics);
 Taplytics.identify = require('./functions/identify')(Taplytics);
 Taplytics.track = require('./functions/track')(Taplytics);
+Taplytics.page = require('./functions/page')(Taplytics);
 
 module.exports = Taplytics;
-},{"./functions/identify":7,"./functions/init":8,"./functions/isReady":9,"./functions/track":10}],7:[function(require,module,exports){
+},{"./functions/identify":7,"./functions/init":8,"./functions/isReady":9,"./functions/page":10,"./functions/track":11}],7:[function(require,module,exports){
 var logger = require('../lib/logger');
 var api = require('../api');
 
@@ -405,10 +434,12 @@ function isTopLevelKey(key) {
     };
 }
 
-},{"../api":2,"../lib/logger":12}],8:[function(require,module,exports){
+},{"../api":2,"../lib/logger":13}],8:[function(require,module,exports){
 var logger = require('../lib/logger');
 var api = require('../api');
+var location = require('../lib/location');
 
+var auto_page_view = true;
 
 module.exports = function(app) {
     return function(token, options) {
@@ -420,19 +451,29 @@ module.exports = function(app) {
         if (options) {
             if (options.log_level)
                 logger.setPriorityLevel(options.log_level);
+
+            if (options.auto_page_view === false)
+                auto_page_view = false;
         }
 
-        // Instatiate accessible stuff:
-
+        /* Initialization */
         app._in = {}; // internal
 
         app._in.token   = token;
         app._in.session = require('../session')(app);
         app._in.logger  = logger; // In case we want to override log level ourselves
 
-        app._in.session.start();
 
+        /* Retrieve a session */
+        app._in.session.start();
         api.users.post(app, {}, "Taplytics: Init failed. Taplytics will not function properly.");
+
+        /* Track current page and other page views. */
+        location.listen(app);
+
+        if (auto_page_view)
+            app.page();
+        
         return app;
     };
 };
@@ -451,7 +492,7 @@ function isValidToken(token) {
 
     return true;
 }
-},{"../api":2,"../lib/logger":12,"../session":15}],9:[function(require,module,exports){
+},{"../api":2,"../lib/location":12,"../lib/logger":13,"../session":18}],9:[function(require,module,exports){
 var logger = require('../lib/logger');
 var api = require('../api');
 
@@ -473,7 +514,40 @@ module.exports = function(app) {
     };
 };
 
-},{"../api":2,"../lib/logger":12}],10:[function(require,module,exports){
+},{"../api":2,"../lib/logger":13}],10:[function(require,module,exports){
+var logger = require('../lib/logger');
+var api = require('../api');
+var location = require('../lib/location');
+
+var currentView = null;
+
+module.exports = function(app) {
+    return function(category, name, attrs) {
+        if (!app.isReady()) {
+            logger.error("Taplytics::track: you have to call Taplytics.init first.", null, logger.USER);
+            return false;
+        }
+        
+        var cat_name = category;
+        var view_name = name;
+        var attributes = attrs;
+
+        if (typeof name === 'object' && !attrs) { // for when function is used as (name, attrs)
+            cat_name = undefined;
+            view_name = category;
+            attributes = name;
+        }
+
+        app._in.session.tick(); // tick the session
+
+        api.events.pageView(cat_name,
+                            view_name,
+                            attributes);
+
+        return app;
+    };
+};
+},{"../api":2,"../lib/location":12,"../lib/logger":13}],11:[function(require,module,exports){
 var logger = require('../lib/logger');
 var api = require('../api');
 
@@ -497,25 +571,90 @@ module.exports = function(app) {
             attributes = value;
         }
         
-        api.events.goalAchieved(event_name, val, attributes);
-
+  
         app._in.session.tick(); // tick the session
+
+
+        api.events.goalAchieved(event_name, val, attributes);
 
         return app;
     };
 };
-},{"../api":2,"../lib/logger":12}],11:[function(require,module,exports){
-module.exports = function() {
+},{"../api":2,"../lib/logger":13}],12:[function(require,module,exports){
+var swizzle = require('../lib/swizzle');
+var logger = require('./logger');
+
+var override = {};
+
+exports.toObject = function() {
     return {
-      href: document.location.href,
-      search: document.location.search,
-      host: document.location.host,
-      protocol: document.location.protocol,
-      pathname: document.location.pathname
+        href: locationAttribute('href'),
+        hash: locationAttribute('hash'),
+        search: locationAttribute('search'),
+        host: locationAttribute('host'),
+        protocol: locationAttribute('protocol'),
+        pathname: locationAttribute('pathname'),
+        title: locationAttribute('title')
     };
 };
 
-},{}],12:[function(require,module,exports){
+exports.attr = function(key) {
+    return locationAttribute(key);
+};
+
+exports.listen = function(app) {
+    
+    // TODO: pushState / onpopstate / onhashchange
+    // if (window.history) {
+    //     logger.log("Taplytics: Listening on history changes to track sessions.", null, logger.LOG);
+
+    //     window.addEventListener('popstate', onpopstate);
+
+    //     if (window.history.pushState) {
+    //         swizzle(window.history, 'pushState', onpushstate, window.history);
+    //         swizzle(window.history, 'replaceState', onreplacestate, window.history);
+    //     } else
+    //         window.addEventListener('hashchange', onhashchange);
+    // }
+};
+
+
+function locationAttribute(attr) {
+    if (override[attr])
+        return override[attr];
+
+    if (attr === 'title')
+        return document.title;
+    
+    if (document.location)
+        return document.location[attr];
+    else return null;
+};
+
+// function onpopstate(e) {
+//  // exports.toObject will work just fine here.
+
+//     logger.log("onpopstate:", e, logger.DEBUG);
+//     logger.log("location:", exports.toObject(), logger.DEBUG);
+// }
+
+// function onpushstate(stateObj, title, state) {
+//  // exports.toObject won't work as pushState doesn't change document.location
+
+//     logger.log("onpushstate:", state, logger.DEBUG);
+//     logger.log("location", exports.toObject(), logger.DEBUG);
+// }
+
+// function onreplacestate(stateObj, title, state) {
+//     logger.log("onreplacestate:", state, logger.DEBUG);
+//     logger.log("location", exports.toObject(), logger.DEBUG);    
+// }
+
+// function onhashchange(e) {
+//  logger.log("onhashchange:", e, logger.DEBUG);
+//     logger.log("location:", exports.toObject(), logger.DEBUG);
+// }
+},{"../lib/swizzle":17,"./logger":13}],13:[function(require,module,exports){
 var priority_level = 0; // 2: debug, 1: log, 0: quiet (big error only)
 
 function isLoggerEnabled(level) {
@@ -548,7 +687,18 @@ module.exports = {
             console.dir(err);
     }
 };
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
+
+module.exports = function(destination, source) {
+    for (var property in source) {
+        if (source.hasOwnProperty(property)) {
+            destination[property] = source[property];
+        }
+    }
+    
+    return destination;
+};
+},{}],15:[function(require,module,exports){
 function Queue() {
 
     var queue  = [];
@@ -603,7 +753,7 @@ function Queue() {
 
 
 module.exports = Queue;
-},{}],14:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var Qs = require('qs');
 
 module.exports = function() {
@@ -623,7 +773,34 @@ module.exports = function() {
 
 	return source;
 };
-},{"qs":19}],15:[function(require,module,exports){
+},{"qs":22}],17:[function(require,module,exports){
+module.exports = function(object, func, new_func, context) {
+    // Make sure new_func is called before (with `context`) object[func] and make sure to call object[func] with `context`
+
+    if (!object)
+        return false;
+
+    if (!func || typeof func !== "string")
+        return false;
+
+    if (!new_func || typeof new_func !== "function")
+        return false;
+
+    if (!object[func])
+        return false;
+
+    var originalFunc = object[func];
+
+    (function(cntx) {
+        object[func] = function() {
+            new_func.apply(cntx, arguments);
+            originalFunc.apply(cntx, arguments); 
+        };
+    })(context);
+
+    return true;
+};
+},{}],18:[function(require,module,exports){
 var logger = require('./lib/logger');
 
 var Cookies = require('cookies-js');
@@ -642,13 +819,18 @@ module.exports = function(app) {
 
         // Correspond to models on our system:
         sessionID: '_tl_sid_' + app.token,
-        appUserID: '_tl_auid_' + app.token
+        appUserID: '_tl_auid_' + app.token,
+        sessionOptions: function(sessionID, key) {
+            if (!sessionID || key)
+                return null;
+
+            return 'tl_sopts_' + app.token + '_' + sessionID + '_' + key;
+        }
     };
 
     var Session = {};
 
     Session.start = function() {
-        
         Session
             .updateCookieSession()
             .setSessionUUID();
@@ -661,6 +843,51 @@ module.exports = function(app) {
 
         return Session;
     };
+
+    // Sets a session variable (only accessible during this session)
+
+    Session.get = function(key) {
+        if (!key)
+            return undefined;
+
+        Session.tick();
+
+        var sessionID = Session.getCookieSessionID();
+        var cookieKey = cookieConfig.sessionOptions(sessionID, key);
+        
+        return Cookies.get(cookieKey);
+    };
+
+    Session.set = function(key, value) {
+        if (!key)
+            return false;
+
+        Session.tick();
+
+        var sessionID = Session.getCookieSessionID();
+        var cookieKey = cookieConfig.sessionOptions(sessionID, key);
+        var expirationDate = dateAdd(new Date(), 'minute', 30); // 30 minute expiration
+
+        Cookies.set(cookieKey, value, {
+            expires: expirationDate
+        });
+
+        return true;
+    };
+
+    // Unsets a session variable
+    Session.unset = function(key) {
+        if (!key)
+            return false;
+
+        Session.tick();
+
+        var sessionID = Session.getCookieSessionID();
+        var cookieKey = cookieConfig.sessionOptions(sessionID, key);
+
+        Cookies.expire(cookieKey);
+    };
+
 
     // Setters
 
@@ -758,7 +985,7 @@ function dateAdd(date, interval, units) { // Thank you SO: http://stackoverflow.
   }
   return ret;
 }
-},{"./lib/logger":12,"cookies-js":17,"uuid":28}],16:[function(require,module,exports){
+},{"./lib/logger":13,"cookies-js":20,"uuid":31}],19:[function(require,module,exports){
 var config = {};
 
 config.baseAPI = "http://localhost:3002/public_api/v1/";
@@ -766,7 +993,7 @@ config.eventsFlushQueueTimeout = 4000;
 
 module.exports = config;
 
-},{}],17:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /*
  * Cookies.js - 1.2.1
  * https://github.com/ScottHamper/Cookies
@@ -928,7 +1155,7 @@ module.exports = config;
         global.Cookies = cookiesExport;
     }
 })(typeof window === 'undefined' ? this : window);
-},{}],18:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 (function (global){
 /*!
  * Platform.js v1.3.0 <http://mths.be/platform>
@@ -2067,10 +2294,10 @@ module.exports = config;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],19:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = require('./lib/');
 
-},{"./lib/":20}],20:[function(require,module,exports){
+},{"./lib/":23}],23:[function(require,module,exports){
 // Load modules
 
 var Stringify = require('./stringify');
@@ -2087,7 +2314,7 @@ module.exports = {
     parse: Parse
 };
 
-},{"./parse":21,"./stringify":22}],21:[function(require,module,exports){
+},{"./parse":24,"./stringify":25}],24:[function(require,module,exports){
 // Load modules
 
 var Utils = require('./utils');
@@ -2250,7 +2477,7 @@ module.exports = function (str, options) {
     return Utils.compact(obj);
 };
 
-},{"./utils":23}],22:[function(require,module,exports){
+},{"./utils":26}],25:[function(require,module,exports){
 // Load modules
 
 var Utils = require('./utils');
@@ -2349,7 +2576,7 @@ module.exports = function (obj, options) {
     return keys.join(delimiter);
 };
 
-},{"./utils":23}],23:[function(require,module,exports){
+},{"./utils":26}],26:[function(require,module,exports){
 // Load modules
 
 
@@ -2483,7 +2710,7 @@ exports.isBuffer = function (obj) {
         obj.constructor.isBuffer(obj));
 };
 
-},{}],24:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -3596,7 +3823,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":25,"reduce":26}],25:[function(require,module,exports){
+},{"emitter":28,"reduce":29}],28:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -3762,7 +3989,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],26:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -3787,7 +4014,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],27:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 (function (global){
 
 var rng;
@@ -3822,7 +4049,7 @@ module.exports = rng;
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],28:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 //     uuid.js
 //
 //     Copyright (c) 2010-2012 Robert Kieffer
@@ -4007,4 +4234,4 @@ uuid.unparse = unparse;
 
 module.exports = uuid;
 
-},{"./rng":27}]},{},[1]);
+},{"./rng":30}]},{},[1]);

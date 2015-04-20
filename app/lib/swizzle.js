@@ -7,7 +7,7 @@ module.exports = function(object, func, new_func, context) {
     if (!func || typeof func !== "string")
         return false;
 
-    if (!new_func || typeof new_func !== "string")
+    if (!new_func || typeof new_func !== "function")
         return false;
 
     if (!object[func])

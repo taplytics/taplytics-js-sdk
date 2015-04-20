@@ -8,7 +8,7 @@ var users_path = 'users';
 
 // Requests
 exports.post = function(app, user_attrs, failure_message, callback) {
-    var locationData = location(); // document.location
+    var locationData = location.toObject(); // document.location
     var sourceData = source(); // documen.referrer + location.search
     var appUser = user_attrs;
     var session = {};

@@ -1,26 +1,40 @@
 var api = require('../api');
 var config = require('../../config');
 var logger = require('../lib/logger');
+var merge = require('../lib/merge');
+var location = require('../lib/location');
 var Queue = require('../lib/queue');
 var events_path = 'events';
 
 var eventsQueue = new Queue();
 var eventTypes = {
-    goal: 'goalAchieved'
+    goal: 'goalAchieved',
+    pageView: 'viewAppeared'
 };
-
 
 exports.types = eventTypes;
 
+exports.pageView = function(category, name, attrs) {
+    var eventObject = defaultEventObject(eventTypes.pageView);
+
+    if (attrs)
+        eventObject.data = merge(eventObject.data, attrs);
+
+    eventObject.val = (new Date()).toISOString();
+    eventObject.vKey = name;
+    eventObject.tKey = category;
+
+    return eventsQueue.enqueue(eventObject);
+};
+
 exports.goalAchieved = function(event_name, value, attrs) {
-    var eventObject = {
-        type: eventTypes.goal,
-        gn: event_name,
-        date: (new Date()).toISOString(),
-        val: value,
-        data: attrs,
-        lv: 1 // TODO: enviornment handling
-    };
+    var eventObject = defaultEventObject(eventTypes.goal);
+
+    if (attrs)
+        eventObject.data = merge(eventObject.data, attrs);
+
+    eventObject.gn = event_name;
+    eventObject.val = value;
 
     return eventsQueue.enqueue(eventObject);
 };
@@ -54,6 +68,19 @@ exports.post = function(app, events, callback) {
 
 // Internal functions
 
+function defaultEventObject(type) {
+    return {
+        type: type,
+        date: (new Date()).toISOString(),
+        tvKey: location.attr('title'),
+        tvCl: location.attr('href'),
+        prod: 1, // TODO: env handling
+        data: {
+            _tl_view: location.toObject()
+        }
+    };
+}
+
 function flushQueue() {
     logger.log("Taplytics::events.flushQueue: tick.", eventsQueue, logger.DEBUG);
 
@@ -73,7 +100,7 @@ function flushQueue() {
     if (!sessionID)
         api.users.post(app, {}, "Taplytics::events.flushQueue: failed to create sessions. Events will fail to process.", logger.LOG);
 
-    post(app, events, function(err, response) {
+    exports.post(app, events, function(err, response) {
         if (err) { // Something went wrong. Add them back to the queue!
             eventsQueue.enqueueAll(events);
         }

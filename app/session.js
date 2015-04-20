@@ -16,13 +16,18 @@ module.exports = function(app) {
 
         // Correspond to models on our system:
         sessionID: '_tl_sid_' + app.token,
-        appUserID: '_tl_auid_' + app.token
+        appUserID: '_tl_auid_' + app.token,
+        sessionOptions: function(sessionID, key) {
+            if (!sessionID || key)
+                return null;
+
+            return 'tl_sopts_' + app.token + '_' + sessionID + '_' + key;
+        }
     };
 
     var Session = {};
 
     Session.start = function() {
-        
         Session
             .updateCookieSession()
             .setSessionUUID();
@@ -35,6 +40,51 @@ module.exports = function(app) {
 
         return Session;
     };
+
+    // Sets a session variable (only accessible during this session)
+
+    Session.get = function(key) {
+        if (!key)
+            return undefined;
+
+        Session.tick();
+
+        var sessionID = Session.getCookieSessionID();
+        var cookieKey = cookieConfig.sessionOptions(sessionID, key);
+        
+        return Cookies.get(cookieKey);
+    };
+
+    Session.set = function(key, value) {
+        if (!key)
+            return false;
+
+        Session.tick();
+
+        var sessionID = Session.getCookieSessionID();
+        var cookieKey = cookieConfig.sessionOptions(sessionID, key);
+        var expirationDate = dateAdd(new Date(), 'minute', 30); // 30 minute expiration
+
+        Cookies.set(cookieKey, value, {
+            expires: expirationDate
+        });
+
+        return true;
+    };
+
+    // Unsets a session variable
+    Session.unset = function(key) {
+        if (!key)
+            return false;
+
+        Session.tick();
+
+        var sessionID = Session.getCookieSessionID();
+        var cookieKey = cookieConfig.sessionOptions(sessionID, key);
+
+        Cookies.expire(cookieKey);
+    };
+
 
     // Setters
 

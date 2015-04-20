@@ -1,6 +1,8 @@
 var logger = require('../lib/logger');
 var api = require('../api');
+var location = require('../lib/location');
 
+var auto_page_view = true;
 
 module.exports = function(app) {
     return function(token, options) {
@@ -12,19 +14,29 @@ module.exports = function(app) {
         if (options) {
             if (options.log_level)
                 logger.setPriorityLevel(options.log_level);
+
+            if (options.auto_page_view === false)
+                auto_page_view = false;
         }
 
-        // Instatiate accessible stuff:
-
+        /* Initialization */
         app._in = {}; // internal
 
         app._in.token   = token;
         app._in.session = require('../session')(app);
         app._in.logger  = logger; // In case we want to override log level ourselves
 
-        app._in.session.start();
 
+        /* Retrieve a session */
+        app._in.session.start();
         api.users.post(app, {}, "Taplytics: Init failed. Taplytics will not function properly.");
+
+        /* Track current page and other page views. */
+        location.listen(app);
+
+        if (auto_page_view)
+            app.page();
+        
         return app;
     };
 };

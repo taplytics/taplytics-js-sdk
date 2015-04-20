@@ -21,9 +21,11 @@ module.exports = function(app) {
             attributes = value;
         }
         
-        api.events.goalAchieved(event_name, val, attributes);
-
+  
         app._in.session.tick(); // tick the session
+
+
+        api.events.goalAchieved(event_name, val, attributes);
 
         return app;
     };
