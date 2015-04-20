@@ -31,7 +31,7 @@ module.exports = function(app) {
         app._in.session.start();
         api.users.post(app, {}, "Taplytics: Init failed. Taplytics will not function properly.");
 
-        /* Track current page and other page views. */
+         Track current page and other page views. 
         location.listen(app);
 
         if (auto_page_view)

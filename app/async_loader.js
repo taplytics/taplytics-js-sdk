@@ -35,7 +35,7 @@
                 e.type = "text/javascript";
                 e.async= !0;
                 // TODO: do better than a fixed URL here..
-                e.src = "//localhost:5000/taplytics.js";
+                e.src = "//s3.amazonaws.com/cdn.taplytics.com/taplytics.min.js";
 
                 var n = document.getElementsByTagName("script")[0];
                 n.parentNode.insertBefore(e,n);
