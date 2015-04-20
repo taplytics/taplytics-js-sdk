@@ -11,12 +11,17 @@ module.exports = function(app) {
             return undefined;
         }
 
+        app.env = "production";
+
         if (options) {
             if (options.log_level)
                 logger.setPriorityLevel(options.log_level);
 
             if (options.auto_page_view === false)
                 auto_page_view = false;
+
+            if (options.env)
+                app.env = options.env;
         }
 
         /* Initialization */
@@ -31,8 +36,8 @@ module.exports = function(app) {
         app._in.session.start();
         api.users.post(app, {}, "Taplytics: Init failed. Taplytics will not function properly.");
 
-         Track current page and other page views. 
-        location.listen(app);
+        /* Track current page and other page views. */
+        // location.listen(app);
 
         if (auto_page_view)
             app.page();

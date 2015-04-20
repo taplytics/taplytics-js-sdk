@@ -1,10 +1,21 @@
-var config = {};
+var app = require('./app/app');
 
-if (process.env.NODE_ENV !== 'production')
-    config.baseAPI = "http://localhost:3002/public_api/v1/";
-else
-    config.baseAPI = "https://taplytics.com/public_api/v1/";
+exports.obj = function() {
+    var config = {};
 
-config.eventsFlushQueueTimeout = 4000;
+    if (app.env !== 'production')
+        config.baseAPI = "http://localhost:3002/public_api/v1/";
+    else if (app.env === 'dev' || app.env === 'development')
+        config.baseAPI = "https://dev.taplytics.com/public_api/v1/";
+    else
+        config.baseAPI = "https://taplytics.com/public_api/v1/";
 
-module.exports = config;
+    config.eventsFlushQueueTimeout = 4000;
+
+    return config;
+};
+
+
+exports.isProduction = function() {
+    return (app.env === 'production');
+};

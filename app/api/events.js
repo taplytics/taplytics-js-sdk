@@ -120,7 +120,7 @@ function defaultEventObject(type) {
         date: (new Date()).toISOString(),
         tvKey: location.attr('title'),
         tvCl: location.attr('href'),
-        prod: 1, // TODO: env handling
+        prod: config.isProduction() ? 1 : 0,
         data: {
             _tl_view: location.toObject()
         }
@@ -156,7 +156,7 @@ function flushQueue() {
 }
 
 function scheduleTick() {
-    setTimeout(flushQueue, config.eventsFlushQueueTimeout);
+    setTimeout(flushQueue, config.obj().eventsFlushQueueTimeout);
 }
 
 // Initiate flushQueue:

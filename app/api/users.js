@@ -2,6 +2,7 @@ var location = require('../lib/location');
 var source = require('../lib/source');
 var logger = require('../lib/logger');
 var api = require('../api');
+var config = require('../../config');
 
 var users_path = 'users';
 
@@ -19,7 +20,7 @@ exports.post = function(app, user_attrs, failure_message, callback) {
     session.ad  = app._in.session.getSessionUUID();
     session.adt = 'browser';
     session.ct  = 'browser';
-    session.lv  = '0'; // liveUpdate TODO: handle enviornment
+    session.lv  = config.isProduction() ? '0' : '1';
     session.rfr = sourceData.referrer;
     session.prms = {
         search: sourceData.search,

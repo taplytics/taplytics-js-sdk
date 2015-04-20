@@ -68,7 +68,7 @@ function processQueue() {
 // Helper Methods
 
 function assembleURL(path, query) {
-    return config.baseAPI + (path || '') + queryString(query);
+    return config.obj().baseAPI + (path || '') + queryString(query);
 }
 
 function queryString(query) {
