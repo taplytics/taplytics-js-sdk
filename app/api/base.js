@@ -7,6 +7,7 @@ var Qs = require('qs');
 
 exports.get  = queueRequest(getRequest);
 exports.post = queueRequest(postRequest);
+exports.del  = queueRequest(deleteRequest);
 
 var requestsQueue = new Queue();
 var isRequesting = false;
@@ -14,16 +15,34 @@ var isRequesting = false;
 // Requests
 function getRequest(path, queryDatum, cb) {
     var params = getRequestQueryAndPayload(queryDatum); 
-    var url = assembleURL(path, params.query);
+    var url = assembleURL(path);
 
-    request.get(url, callbackWrapper(url, cb));
+    request
+        .get(url)
+        .query(params.query)
+        .end(callbackWrapper(url, cb));
 }
 
 function postRequest(path, queryDatum, payloadDatum, cb) {
     var params = getRequestQueryAndPayload(queryDatum, payloadDatum);   
-    var url = assembleURL(path, params.query);
+    var url = assembleURL(path);
 
-    request.post(url, params.payload, callbackWrapper(url, cb));
+    request
+        .post(url)
+        .query(params.query)
+        .send(params.payload)        
+        .end(callbackWrapper(url, cb));
+}
+
+function deleteRequest(path, queryDatum, payloadDatum, cb) {
+    var params = getRequestQueryAndPayload(queryDatum, payloadDatum);
+    var url = assembleURL(path);
+
+    request
+        .del(url)
+        .query(params.query)
+        .send(params.payload)
+        .end(callbackWrapper(url, cb));
 }
 
 // Processing
@@ -31,9 +50,9 @@ function postRequest(path, queryDatum, payloadDatum, cb) {
 function callbackWrapper(url, cb) {
     return function(err, res) {
         if (err)
-            logger.error("Error: " + url, err);
+            logger.error("Error: " + url, err, logger.DEBUG);
 
-        if (cb)
+        if (cb && typeof cb === 'function')
             cb(err, res);
 
         processQueue();
@@ -78,8 +97,8 @@ function queryString(query) {
 }
 
 function getRequestQueryAndPayload(queryDatum, payloadDatum) {
-    var query = null;
-    var payload = null;
+    var query = {};
+    var payload = {};
 
     if (queryDatum && typeof queryDatum == "function")
         query = queryDatum();

@@ -140,6 +140,12 @@ module.exports = function(app) {
         return Session;
     };
 
+    Session.deleteAppUserID = function() {
+        Cookies.expire(cookieConfig.appUserID);
+
+        return Session;
+    };
+
     Session.setSessionID = function(sessionID) {
         Cookies.set(cookieConfig.sessionID, sessionID);
 

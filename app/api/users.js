@@ -7,6 +7,38 @@ var config = require('../../config');
 var users_path = 'users';
 
 // Requests
+
+exports.del = function(app, callback) {
+    var appUserID = app._in.session.getAppUserID();
+
+    if (!appUserID)
+        return;
+
+    var session = {};
+
+    session.sid = app._in.session.getSessionID();
+    session.ad  = app._in.session.getSessionUUID();
+
+    var params = {
+        public_token: app._in.token
+    };
+
+    var payload = {
+        session: session
+    };
+
+    logger.log("users_del", payload, logger.DEBUG);
+
+    api.request.del(users_path + "/" + appUserID, params, payload, function(err, response) {
+        if (err)
+            logger.error("Taplytics: Couldn't properly rest user.", response, logger.DEBUG);
+        else
+            logger.log("Taplytics: successfully reset the user.", response, logger.DEBUG);
+        
+        return callback && callback(err, response);
+    });
+};
+
 exports.post = function(app, user_attrs, failure_message, callback) {
     var locationData = location.toObject(); // document.location
     var sourceData = source(); // documen.referrer + location.search
@@ -22,6 +54,13 @@ exports.post = function(app, user_attrs, failure_message, callback) {
     session.ct  = 'browser';
     session.lv  = config.isProduction() ? '0' : '1';
     session.rfr = sourceData.referrer;
+
+    session.exm = sourceData.search.utm_medium;
+    session.exs = sourceData.search.utm_source;
+    session.exc = sourceData.search.utm_campaign;
+    session.ext = sourceData.search.utm_term;
+    session.exct = sourceData.search.utm_content;
+
     session.prms = {
         search: sourceData.search,
         location: locationData,
