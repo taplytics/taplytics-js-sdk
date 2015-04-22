@@ -11,17 +11,17 @@ module.exports = function(app) {
     if (!app || (app && !app._in.token)) return undefined;
 
     var cookieConfig = {
-        cookieSessionID: '_tl_csid_' + app.token,
-        sessionUUID: '_tl_suuid_' + app.token,
+        cookieSessionID: '_tl_csid_' + app._in.token,
+        sessionUUID: '_tl_suuid_' + app._in.token,
 
         // Correspond to models on our system:
-        sessionID: '_tl_sid_' + app.token,
-        appUserID: '_tl_auid_' + app.token,
+        sessionID: '_tl_sid_' + app._in.token,
+        appUserID: '_tl_auid_' + app._in.token,
         sessionOptions: function(sessionID, key) {
             if (!sessionID || !key)
                 return null;
 
-            return 'tl_sopts_' + app.token + '_' + sessionID + '_' + key;
+            return 'tl_sopts_' + app._in.token + '_' + sessionID + '_' + key;
         }
     };
 

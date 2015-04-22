@@ -1,4 +1,5 @@
-var api = require('../api');
+var request = require('../api/base');
+var users = require('../api/users');
 var config = require('../../config');
 var logger = require('../lib/logger');
 var merge = require('../lib/merge');
@@ -39,6 +40,10 @@ exports.timeOnPage = function(category, name, href, title, location, startDate) 
         });
 
     return eventsQueue.enqueue(eventObject);
+};
+
+exports.scheduleTick = function() {
+    setTimeout(flushQueue, config.obj().eventsFlushQueueTimeout);
 };
 
 exports.pageClose = function(category, name, href, title, location) {
@@ -130,7 +135,7 @@ function defaultEventObject(type) {
 function flushQueue() {
     logger.log("Taplytics::events.flushQueue: tick.", eventsQueue, logger.DEBUG);
 
-    var app = window.Taplytics;
+    var app = require('../app');
 
     if (!app || (app && !app.isReady())) 
         return scheduleTick();
@@ -144,7 +149,7 @@ function flushQueue() {
 
     // Queue up a session request if we don't have a session ID.
     if (!sessionID)
-        api.users.post(app, {}, "Taplytics::events.flushQueue: failed to create sessions. Events will fail to process.");
+        users.post(app, {}, "Taplytics::events.flushQueue: failed to create sessions. Events will fail to process.");
 
     exports.post(app, events, function(err, response) {
         if (err) { // Something went wrong. Add them back to the queue!
@@ -154,11 +159,3 @@ function flushQueue() {
         scheduleTick();
     });
 }
-
-function scheduleTick() {
-    setTimeout(flushQueue, config.obj().eventsFlushQueueTimeout);
-}
-
-// Initiate flushQueue:
-
-scheduleTick();

@@ -3,9 +3,6 @@
   "version": "0.0.1",
   "description": "Taplytics JS SDK",
   "main": "dist/taplytics.min.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/taplytics/Taplytics-JS.git"
@@ -39,5 +36,23 @@
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.1.0"
+  },
+  "devDependencies": {
+    "jest": "^0.1.39",
+    "jest-cli": "^0.4.0",
+    "should": "^6.0.1"
+  },
+  "jest": {
+    "unmockedModulePathPatterns": [
+      "test/helpers/",
+      "should",
+      "underscore",
+      "async",
+      "superagent",
+      "uuid"
+    ]
+  },
+  "scripts": {
+    "test": "jest"
   }
 }

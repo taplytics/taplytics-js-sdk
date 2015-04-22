@@ -31,7 +31,6 @@ module.exports = function(app) {
         app._in.session = require('../session')(app);
         app._in.logger  = logger; // In case we want to override log level ourselves
 
-
         /* Retrieve a session */
         app._in.session.start();
         api.users.post(app, {}, "Taplytics: Init failed. Taplytics will not function properly.");
@@ -39,13 +38,15 @@ module.exports = function(app) {
         /* Track current page and other page views. */
         // location.listen(app);
 
-        if (auto_page_view)
+        if (auto_page_view && app.page)
             app.page();
+
+        // Initiate flushQueue:
+        api.events.scheduleTick();
         
         return app;
     };
 };
-
 // Helper functions
 
 function isValidToken(token) {
