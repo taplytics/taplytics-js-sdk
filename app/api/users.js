@@ -99,7 +99,6 @@ exports.post = function(app, user_attrs, failure_message, callback) {
                 logger.error(failure_message, null, logger.USER);
             }
         }
-
         return callback && callback(err, response);
     });
 };

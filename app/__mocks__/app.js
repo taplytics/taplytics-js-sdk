@@ -5,7 +5,3 @@ module.exports = function() {
     Taplytics.isMock = true;
     return Taplytics;
 }();
-
-
-
-
