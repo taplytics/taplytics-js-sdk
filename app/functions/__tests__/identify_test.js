@@ -1,19 +1,14 @@
 jest.dontMock('../identify');
 
-var Taplytics = require.requireActual('../../../test/helpers/initialized_app');
-var TaplyticsUninitialized = require.requireActual('../../../test/helpers/uninitialized_app');
 var should = require.requireActual('should');
 
-var logger = require('../../lib/logger'); // mocked
-var api = require('../../api');
+describe("Taplytics.identify - uninitialized app", function() {
+    var TaplyticsUninitialized;
+    var logger;
 
-describe("Taplytics.identify - arguments", function() {
-    it("should error on invalid attributes", function() {
-        var attrs = "fake";
-
-        Taplytics.identify(attrs);
-
-        expect(logger.error).toBeCalled();
+    beforeEach(function() {
+        TaplyticsUninitialized = require('../../../test/helpers/uninitialized_app');
+        logger = require('../../lib/logger'); // mocked        
     });
 
     it("should error on uninitialized SDK", function() {
@@ -22,12 +17,35 @@ describe("Taplytics.identify - arguments", function() {
         };
 
         TaplyticsUninitialized.identify(attrs);
+        expect(logger.error).toBeCalled();
+    });
+});
+
+describe("Taplytics.identify - arguments", function() {
+    var Taplytics;
+    var logger;
+
+    beforeEach(function() {
+        Taplytics = require('../../../test/helpers/initialized_app');
+        logger = require('../../lib/logger'); // mocked
+    });
+
+    it("should error on invalid attributes", function() {
+        var attrs = "fake";
+
+        Taplytics.identify(attrs);
 
         expect(logger.error).toBeCalled();
     });
 });
 
 describe("Taplytics::identify - server calls", function() {
+    var Taplytics;
+
+    beforeEach(function() {
+        Taplytics = require('../../../test/helpers/initialized_app');
+    });
+
     it("should attempt to update and create user", function() {
         var attrs = {
             valid: "attrs"
@@ -35,7 +53,7 @@ describe("Taplytics::identify - server calls", function() {
 
         Taplytics.identify(attrs);
 
-        expect(api.users.post).toBeCalled();
+        expect(Taplytics.api.users.post).toBeCalled();
     });
 
     it("should parse known top level keys and custom variables", function() {
@@ -53,10 +71,11 @@ describe("Taplytics::identify - server calls", function() {
 
         Taplytics.identify(attrs);
 
-        var usersPostCalls = api.users.post.mock.calls;
+        var usersPostCalls = Taplytics.api.users.post.mock.calls;
 
         // Check if last called was with a proper second argument
-        expect(usersPostCalls[usersPostCalls.length - 1][1]).toEqual({
+        console.dir(usersPostCalls);
+        expect(usersPostCalls[usersPostCalls.length - 1][0]).toEqual({
             user_id: 1,
             email: "nima@Taplytics.com",
             name: "Nima Gardideh",

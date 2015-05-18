@@ -6,28 +6,22 @@ jest.dontMock('../../api');
 jest.dontMock('../users');
 
 describe("api.users.post", function() {
-    var api;
     var session;
     var Taplytics;
 
     beforeEach(function() {
-        api = require('../../api');
         session = require('../../lib/session');
         Taplytics = require('../../../test/helpers/initialized_app');
     });
 
     it("should make a post to the server", function(done) {
-        var api = require('../../api');
-
-        var Taplytics = require('../../../test/helpers/initialized_app');
-
         var user_attrs = {
             gender: "xe"
         };
 
-        api.users.post(Taplytics, user_attrs, "fail", function(err, response){});
+        Taplytics.api.users.post(Taplytics, user_attrs, "fail", function(err, response){});
 
-        expect(api.request.post).toBeCalled();
+        expect(Taplytics.api.request.post).toBeCalled();
     });
 
     it("should make a post with the right session data", function() {
@@ -38,11 +32,9 @@ describe("api.users.post", function() {
             user_id: 1
         };
 
-        api.users.post(Taplytics, user_attrs, "fail", function(){});
+        Taplytics.api.users.post(user_attrs, "fail", function(){});
 
-        expect(api.request.post).lastCalledWith(api.users.users_path, {
-            public_token: Taplytics._in.token
-        }, {
+        expect(Taplytics.api.request.post).lastCalledWith(Taplytics.api.users.users_path, {}, {
             session: {
                 sid: session.getSessionID(),
                 ad: session.getSessionUUID(),
@@ -74,11 +66,11 @@ describe("api.users.post", function() {
         var error = new Error("Test Error");
         var mockedFunc = jest.genMockFn();
 
-        api.request.post.mockImpl(function(path, params, payload, callback) {
+        Taplytics.api.request.post.mockImpl(function(path, params, payload, callback) {
             callback(error);
         });
 
-        api.users.post(Taplytics, {}, "Fail Message", mockedFunc);
+        Taplytics.api.users.post({}, "Fail Message", mockedFunc);
 
         expect(mockedFunc).toBeCalledWith(error, undefined);
         expect(logger.error).toBeCalledWith("Fail Message", error, jasmine.any(Number));
@@ -93,11 +85,11 @@ describe("api.users.post", function() {
         };
         var mockedFunc = jest.genMockFn();
 
-        api.request.post.mockImpl(function(path, params, payload, callback) {
+        Taplytics.api.request.post.mockImpl(function(path, params, payload, callback) {
             callback(null, response);
         });
 
-        api.users.post(Taplytics, {}, "Fail", mockedFunc);
+        Taplytics.api.users.post({}, "Fail", mockedFunc);
 
         expect(session.setAppUserID).toBeCalledWith(1);
         expect(session.setSessionID).toBeCalledWith(2);
