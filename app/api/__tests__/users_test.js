@@ -1,4 +1,3 @@
-var should = require.requireActual('should');
 var Cookies = require('cookies-js');
 
 jest.mock('../base'); // mock api.request

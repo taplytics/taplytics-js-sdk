@@ -11,9 +11,8 @@ module.exports = function() {
 
     this.api.users.del();
 
-    session
-        .deleteSessionID()
-        .deleteAppUserID();
+    session.deleteSessionID();
+    session.deleteAppUserID();
 
     this.api.users.post({}, "Taplytics: couldn't create a new session/user. Taplytics will not function properly.");
 

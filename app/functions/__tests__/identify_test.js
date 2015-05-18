@@ -1,7 +1,5 @@
 jest.dontMock('../identify');
 
-var should = require.requireActual('should');
-
 describe("Taplytics.identify - uninitialized app", function() {
     var TaplyticsUninitialized;
     var logger;
@@ -74,7 +72,6 @@ describe("Taplytics::identify - server calls", function() {
         var usersPostCalls = Taplytics.api.users.post.mock.calls;
 
         // Check if last called was with a proper second argument
-        console.dir(usersPostCalls);
         expect(usersPostCalls[usersPostCalls.length - 1][0]).toEqual({
             user_id: 1,
             email: "nima@Taplytics.com",

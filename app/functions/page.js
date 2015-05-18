@@ -2,8 +2,6 @@ var logger = require('../lib/logger');
 var location = require('../lib/location');
 var session = require('../lib/session');
 
-var currentView = null;
-
 var sessionConfigOptions = {
     previous_page_href: 'p_p_l_h',
     previous_page_title: 'p_p_l_t',
