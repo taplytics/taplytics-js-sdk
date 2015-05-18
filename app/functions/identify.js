@@ -1,25 +1,22 @@
 var logger = require('../lib/logger');
-var api = require('../api');
 
-module.exports = function(app) {
-    return function(attrs) {
-        if (!app.isReady()) {
-            logger.error("Taplytics::identify: you have to call Taplytics.init first.", null, logger.USER);
-            return app;
-        }
+module.exports = function(attrs) {
+    if (!this.isReady()) {
+        logger.error("Taplytics::identify: you have to call Taplytics.init first.", null, logger.USER);
+        return this;
+    }
 
-        if (!isValidAttrs(attrs)) {
-            logger.error("Taplytics::identify: you have to pass in an object with user attributes.", null, logger.USER);
+    if (!isValidAttrs(attrs)) {
+        logger.error("Taplytics::identify: you have to pass in an object with user attributes.", null, logger.USER);
 
-            return app;
-        }
+        return this;
+    }
 
-        var parsedAttrs = parseAttrs(attrs);
+    var parsedAttrs = parseAttrs(attrs);
 
-        api.users.post(app, parsedAttrs, "Taplytics::identify: failed to save the user attributes properly.");
+    this.api.users.post(parsedAttrs, "Taplytics::identify: failed to save the user attributes properly.");
 
-        return app;
-    };
+    return this;
 };
 
 // Helpers

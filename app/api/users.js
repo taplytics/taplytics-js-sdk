@@ -1,7 +1,7 @@
+var request = require('./base');
 var location = require('../lib/location');
 var source = require('../lib/source');
 var logger = require('../lib/logger');
-var api = require('../api');
 var session = require('../lib/session');
 var config = require('../../config');
 
@@ -9,7 +9,7 @@ exports.users_path = 'users';
 
 // Requests
 
-exports.del = function(app, callback) {
+exports.del = function(callback) {
     var appUserID = session.getAppUserID();
 
     if (!appUserID)
@@ -20,9 +20,7 @@ exports.del = function(app, callback) {
     sessionAttrs.sid = session.getSessionID();
     sessionAttrs.ad  = session.getSessionUUID();
 
-    var params = {
-        public_token: app._in.token
-    };
+    var params = {};
 
     var payload = {
         session: sessionAttrs
@@ -30,17 +28,17 @@ exports.del = function(app, callback) {
 
     logger.log("users_del", payload, logger.DEBUG);
 
-    api.request.del(exports.users_path + "/" + appUserID, params, payload, function(err, response) {
+    request.del(exports.users_path + "/" + appUserID, params, payload, function(err, response) {
         if (err)
-            logger.error("Taplytics: Couldn't properly rest user.", response, logger.DEBUG);
+            logger.error("Couldn't properly rest user.", response, logger.DEBUG);
         else
-            logger.log("Taplytics: successfully reset the user.", response, logger.DEBUG);
+            logger.log("Successfully reset the user.", response, logger.DEBUG);
 
         return callback && callback(err, response);
     });
 };
 
-exports.post = function(app, user_attrs, failure_message, callback) {
+exports.post = function(user_attrs, failure_message, callback) {
     var locationData = location.toObject(); // document.location
     var sourceData = source(); // document.referrer + location.search
     var appUser = user_attrs;
@@ -72,9 +70,7 @@ exports.post = function(app, user_attrs, failure_message, callback) {
 
     appUser.auid = session.getAppUserID();
 
-    var params = {
-        public_token: app._in.token
-    };
+    var params = {};
 
     var payload = {
         session: sessionAttrs,
@@ -83,14 +79,14 @@ exports.post = function(app, user_attrs, failure_message, callback) {
 
     logger.log("users_post", payload, logger.DEBUG);
 
-    api.request.post(exports.users_path, params, payload, function(err, response) {
+    request.post(exports.users_path, params, payload, function(err, response) {
         if (err) {
             logger.error(failure_message, err, logger.USER);
         } else {
             var data = response.body;
 
             if (data) {
-                logger.log("Taplytics::Users.post: successfully created/updated user.", response, logger.DEBUG);
+                logger.log("Users.post: successfully created/updated user.", response, logger.DEBUG);
 
                 var appUserID = data.app_user_id;
                 var sessionID = data.session_id;

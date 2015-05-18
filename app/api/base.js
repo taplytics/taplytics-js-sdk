@@ -7,10 +7,13 @@ var Qs = require('qs');
 var requestsQueue = new Queue();
 var isRequesting = false;
 
+
 var queuedPostRequest = queueRequest(postRequest);
 var queuedGetRequest = queueRequest(getRequest);
 var queuedDelRequest = queueRequest(deleteRequest);
 
+exports.publicToken = null;
+exports.setPublicToken = setPublicToken;
 exports.get  = queuedGetRequest;
 exports.post = queuedPostRequest;
 exports.del  = queuedDelRequest;
@@ -49,6 +52,11 @@ function deleteRequest(path, queryDatum, payloadDatum, cb) {
         .set('Content-Type', 'application/base64+json')
         .send(params.payload)
         .end(callbackWrapper(url, cb));
+}
+
+
+function setPublicToken(token) {
+    exports.publicToken = token;
 }
 
 // Processing
@@ -122,6 +130,9 @@ function getRequestQueryAndPayload(queryDatum, payloadDatum) {
         payload = window.btoa(JSON.stringify(payload));
     else
         query.r_v = '0'; // No btoa support, revert to normal JSON
+
+    if (this.publicToken)
+        query.public_token = this.publicToken;
 
     return {
         query: query,

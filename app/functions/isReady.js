@@ -1,17 +1,12 @@
 var logger = require('../lib/logger');
 var api = require('../api');
 
-module.exports = function(app) {
-    return function() {
-        if (!app)
-            return false;
+module.exports = function() {
+    if (!this._in)
+        return false;
 
-        if (!app._in)
-            return false;
-
-        if (!app._in.token)
-            return false;
-        
-        return true;
-    };
+    if (!this._in.token)
+        return false;
+    
+    return true;
 };

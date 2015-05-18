@@ -1,5 +1,5 @@
-var request = require('../api/base');
-var users = require('../api/users');
+var request = require('./base');
+var users = require('./users');
 var config = require('../../config');
 var logger = require('../lib/logger');
 var merge = require('../lib/merge');
@@ -45,7 +45,8 @@ exports.timeOnPage = function(category, name, href, title, location, startDate) 
 };
 
 exports.scheduleTick = function() {
-    setTimeout(flushQueue, config.obj().eventsFlushQueueTimeout);
+    var flushQueueFunc = flushQueue.bind(this);
+    setTimeout(flushQueueFunc, config.obj().eventsFlushQueueTimeout);
 };
 
 exports.pageClose = function(category, name, href, title, location) {
@@ -92,10 +93,8 @@ exports.goalAchieved = function(event_name, value, attrs) {
     return eventsQueue.enqueue(eventObject);
 };
 
-exports.post = function(app, events, callback) {
-    var params = {
-        public_token: app._in.token
-    };
+exports.post = function(events, callback) {
+    var params = {};
 
     var payloadDatum = function(even) {
         var sessionAttrs = {};
@@ -135,12 +134,7 @@ function defaultEventObject(type) {
 }
 
 function flushQueue() {
-    logger.log("Taplytics::events.flushQueue: tick.", eventsQueue, logger.DEBUG);
-
-    var app = require('../app');
-
-    if (!app || (app && !app.isReady())) 
-        return exports.scheduleTick();
+    logger.log("events.flushQueue: tick.", eventsQueue, logger.DEBUG);
 
     if (eventsQueue.isEmpty())
         return exports.scheduleTick();
@@ -151,9 +145,9 @@ function flushQueue() {
 
     // Queue up a session request if we don't have a session ID.
     if (!sessionID)
-        users.post(app, {}, "Taplytics::events.flushQueue: failed to create sessions. Events will fail to process.");
+        users.post({}, "Taplytics::events.flushQueue: failed to create sessions. Events will fail to process.");
 
-    exports.post(app, events, function(err, response) {
+    this.post(events, function(err, response) {
         if (err) { // Something went wrong. Add them back to the queue!
             eventsQueue.enqueueAll(events);
         }

@@ -1,53 +1,55 @@
 var logger = require('../lib/logger');
-var api = require('../api');
 var location = require('../lib/location');
 var session = require('../lib/session');
 
 var auto_page_view = true;
 
-module.exports = function(app) {
-    return function(token, options) {
-        if (!isValidToken(token)) {
-            logger.error("Taplytics: an SDK token is required.", null, logger.USER);
-            return undefined;
-        }
+module.exports = function(token, options) {
+    if (!isValidToken(token)) {
+        logger.error("An SDK token is required.", null, logger.USER);
+        return undefined;
+    }
 
-        app.env = "production";
+    this.env = "production";
 
-        if (options) {
-            if (options.log_level)
-                logger.setPriorityLevel(options.log_level);
+    if (options) {
+        if (options.log_level)
+            logger.setPriorityLevel(options.log_level);
 
-            if (options.auto_page_view === false)
-                auto_page_view = false;
+        if (options.auto_page_view === false)
+            auto_page_view = false;
 
-            if (options.env)
-                app.env = options.env;
-        }
+        if (options.env)
+            this.env = options.env;
+    }
 
-        /* Initialization */
-        app._in = {}; // internal
+    /* Initialization */
+    // internal data
+    this._in = {};
 
-        app._in.token   = token;
+    this._in.token   = token;
 
-        app._in.logger  = logger; // In case we want to override log level ourselves
+    // Expose this, in case we want to override log level after initialization.
+    this._in.logger  = logger;
 
-        /* Start a session */
-        session.start();
+    // Let API know about our token.
+    this.api.init(this);
 
-        api.users.post(app, {}, "Taplytics: Init failed. Taplytics will not function properly.");
+    /* Start a session */
+    session.start();
 
-        /* Track current page and other page views. */
-        // location.listen(app);
+    this.api.users.post({}, "Init failed. Taplytics will not function properly.");
 
-        if (auto_page_view && app.page)
-            app.page();
+    /* Track current page and other page views. */
+    // location.listen(app);
 
-        // Initiate flushQueue:
-        api.events.scheduleTick();
-        
-        return app;
-    };
+    if (auto_page_view && this.page)
+        this.page();
+
+    // Initiate flushQueue:
+    this.api.events.scheduleTick();
+    
+    return this;
 };
 // Helper functions
 

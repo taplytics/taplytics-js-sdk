@@ -1,4 +1,3 @@
-var api = require('./api');
 var app = require('./app');
 var logger = require('./lib/logger');
 var config = require('../config');
@@ -8,7 +7,7 @@ exports.Taplytics = window.Taplytics = module.exports = app;
 // Launch functions from the app queue if there is one.
 // This queue is filled by the async loader and users.
 exports.flushAppQueue = function() {
-    logger.log("Taplytics: flushAppQueue tick", window._tlq, logger.LOUD);
+    logger.log("flushAppQueue tick", window._tlq, logger.LOUD);
 
     if (window._tlq && window._tlq instanceof Array) {
         var queue = window._tlq.slice();
@@ -32,7 +31,7 @@ exports.flushAppQueue = function() {
         }
 
         if (queue.length > 0) {
-            logger.log("Taplytics: flushAppQueue: " + queue.length, queue, logger.LOUD);
+            logger.log("flushAppQueue: " + queue.length, queue, logger.LOUD);
 
             for(var i = 0; i < queue.length; i++) {
                 var func = queue[i];
@@ -44,9 +43,11 @@ exports.flushAppQueue = function() {
                     try {
                         app[func_name].apply(app, func_args);
                     } catch (e) {
-                        logger.error("Attempted to call Taplytics." + 
+                        logger.error("Attempted to call " + 
                                      func_name + "(" + (func_args || []).join(',') + 
                                      "); from the queue but failed!", e, logger.USER);
+                        if (e && e.stack)
+                            logger.error(e.stack, null, logger.DEBUG);
                     }
                 }
             }

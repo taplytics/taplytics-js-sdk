@@ -1,5 +1,4 @@
 var logger = require('../lib/logger');
-var api = require('../api');
 var location = require('../lib/location');
 var session = require('../lib/session');
 
@@ -14,59 +13,58 @@ var sessionConfigOptions = {
     previous_page_view_date: 'p_p_v_d'
 };
 
-module.exports = function(app) {
-    return function(category, name, attrs) {
-        if (!app.isReady()) {
-            logger.error("Taplytics::track: you have to call Taplytics.init first.", null, logger.USER);
-            return app;
-        }
+module.exports = function(category, name, attrs) {
+    if (!this.isReady()) {
+        logger.error("track: you have to call Taplytics.init first.", null, logger.USER);
+        return this;
+    }
+    
+    var cat_name = category;
+    var view_name = name;
+    var attributes = attrs;
+
+    if (typeof name === 'object' && !attrs) { // for when function is used as (name, attrs)
+        cat_name = undefined;
+        view_name = category;
+        attributes = name;
+    } else if (category && !name) { // for when function is used as (name)
+        cat_name = undefined;
+        view_name = category;
+    }
+
+    session.tick(); // tick the session
+
+    // If we have a previous page in the session:
+    // 1. Send a page close (viewDisappeared) event
+    // 2. Send a time on page (viewTimeOnPage) event
+    // 3. Clean up session and set the new page to the current one
+
+    if (session.get(sessionConfigOptions.previous_page_href)) {
+        var opts = getPreviousPage();
+
+        this.api.events.pageClose(opts.category, 
+                             opts.name,
+                             opts.href,
+                             opts.title,
+                             opts.location);
         
-        var cat_name = category;
-        var view_name = name;
-        var attributes = attrs;
+        this.api.events.timeOnPage(opts.category,
+                              opts.name,
+                              opts.href,
+                              opts.title,
+                              opts.location,
+                              opts.view_date);
 
-        if (typeof name === 'object' && !attrs) { // for when function is used as (name, attrs)
-            cat_name = undefined;
-            view_name = category;
-            attributes = name;
-        } else if (category && !name) { // for when function is used as (name)
-            cat_name = undefined;
-            view_name = category;
-        }
+        unsetPreviousPage();
+    }
 
-        session.tick(); // tick the session
+    this.api.events.pageView(cat_name,
+                        view_name,
+                        attributes);
 
-        // If we have a previous page in the session:
-        // 1. Send a page close (viewDisappeared) event
-        // 2. Send a time on page (viewTimeOnPage) event
-        // 3. Clean up session and set the new page to the current one
+    setPreviousPage(cat_name, view_name);
 
-        if (session.get(sessionConfigOptions.previous_page_href)) {
-            var opts = getPreviousPage();
-
-            api.events.pageClose(opts.category, 
-                                 opts.name,
-                                 opts.href,
-                                 opts.title,
-                                 opts.location);
-            
-            api.events.timeOnPage(opts.category,
-                                  opts.name,
-                                  opts.href,
-                                  opts.title,
-                                  opts.location,
-                                  opts.view_date);
-
-            unsetPreviousPage();
-        }
-
-        api.events.pageView(cat_name,
-                            view_name,
-                            attributes);
-
-        setPreviousPage(cat_name, view_name);
-        return app;
-    };
+    return this;
 };
 
 
