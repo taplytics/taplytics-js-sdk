@@ -56,7 +56,7 @@ function deleteRequest(path, queryDatum, payloadDatum, cb) {
 
 
 function setPublicToken(token) {
-    exports.publicToken = token;
+    this.publicToken = token;
 }
 
 // Processing
@@ -92,7 +92,7 @@ function processQueue() {
         var queueItem = requestsQueue.dequeue();
 
         logger.log("Processing request", queueItem, logger.DEBUG);
-        return queueItem && queueItem.requestFunction && queueItem.requestFunction.apply(undefined, queueItem.args);
+        return queueItem && queueItem.requestFunction && queueItem.requestFunction.apply(exports, queueItem.args);
     } else {
         isRequesting = false;
     }
@@ -131,8 +131,8 @@ function getRequestQueryAndPayload(queryDatum, payloadDatum) {
     else
         query.r_v = '0'; // No btoa support, revert to normal JSON
 
-    if (this.publicToken)
-        query.public_token = this.publicToken;
+    if (exports.publicToken)
+        query.public_token = exports.publicToken;
 
     return {
         query: query,
