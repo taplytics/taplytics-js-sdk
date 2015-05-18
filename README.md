@@ -1,5 +1,6 @@
 # Taplytics.js
 
+[![Build Status](https://circleci.com/gh/taplytics/Taplytics-js.svg?style=svg)](https://circleci.com/gh/taplytics/Taplytics-js)
 
 ## Getting Started
 
