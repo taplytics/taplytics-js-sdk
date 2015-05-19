@@ -1,14 +1,14 @@
-module.exports = function() {
-    var searchParams = {
-        fake: "Search params",
-        utm_source: "google",
-        utm_medium: "cpc",
-        utm_campaign: "jest",
-        utm_term: "hi",
-        utm_content: "ad"
-    };
+var Qs = require('qs');
 
-    var referrer = "fake referrer";
+module.exports = function() {
+    var searchParams = {};
+    var referrer = null;
+
+    if (location && location.search && location.search.length)
+         searchParams = Qs.parse(location.search.substr(1));
+
+    if (document && document.referrer)
+        referrer = document.referrer;
 
     var source = {
         referrer: referrer,
