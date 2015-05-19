@@ -1,4 +1,4 @@
-var Cookies = require('cookies-js');
+var Cookies = require('./cookies');
 var uuidGenerator = require('uuid');
 var logger = require('./logger');
 

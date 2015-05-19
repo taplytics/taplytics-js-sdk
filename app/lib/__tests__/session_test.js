@@ -1,7 +1,7 @@
 jest.dontMock('../session');
 
 var should = require('should');
-var Cookies = require('cookies-js'); // mocked
+var Cookies = require('cookies'); // mocked
 var uuidGenerator = require('uuid'); // mocked
 
 

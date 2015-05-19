@@ -2,7 +2,7 @@ jest.dontMock('../page');
 jest.dontMock('../../lib/session');
 
 var should = require.requireActual('should');
-var Cookies = require('cookies-js');
+var Cookies = require('cookies');
 
 describe("Taplytics.page - arguments", function() {
     it("should error on if app is not initialized", function() {

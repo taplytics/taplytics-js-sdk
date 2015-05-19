@@ -1,5 +1,3 @@
-var Cookies = require('cookies-js');
-
 jest.mock('../base'); // mock api.request
 jest.dontMock('../../api');
 jest.dontMock('../users');

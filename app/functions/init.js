@@ -1,6 +1,7 @@
 var logger = require('../lib/logger');
 var location = require('../lib/location');
 var session = require('../lib/session');
+var cookies = require('../lib/cookies');
 
 var auto_page_view = true;
 
@@ -31,6 +32,7 @@ module.exports = function(token, options) {
 
     // Expose this, in case we want to override log level after initialization.
     this._in.logger  = logger;
+    this._in.cookies = cookies;
 
     // Let API know about our token.
     this.api.init(this);
