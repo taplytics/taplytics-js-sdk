@@ -3,21 +3,21 @@
 This document describes all the APIs that Taplytics.js exposes. 
 
 
-- [`init`](#taplyticsinittoken-options-source)
-- [`identify`](#taplyticsidentifyuser_attributes-source)
-- [`track`](#taplyticstrackevent_name-value-event_attributes-source)
-- [`page`](#taplyticspagecategory-name-page_attributes-source)
-- [`reset`](#taplyticsreset-source)
+- [`init`](#taplyticsinittoken-options)
+- [`identify`](#taplyticsidentifyuser_attributes)
+- [`track`](#taplyticstrackevent_name-value-event_attributes)
+- [`page`](#taplyticspagecategory-name-page_attributes)
+- [`reset`](#taplyticsreset)
 
 ## Taplytics Javascript API
 
-### Taplytics.init(token, [options]) [*source*](/app/functions/init.js)
+### Taplytics.init(token, [options])
 
 Instantiates Taplytics.js.
 
 This should be the first function to be called on the page before all other functions. You can find your JS SDK Key in the Settings section of your project on Taplytics.com. 
 
-It also automatically calls the [`page`](#taplyticspagecategory-name-page_attributes-source) function (with no arguments) right away. You can disable this in the options.
+It also automatically calls the [`page`](#taplyticspagecategory-name-page_attributes) function (with no arguments) right away. You can disable this in the options.
 
 
 #### Arguments
@@ -49,7 +49,7 @@ Taplytics.init("js-sdk-token", {
 ```
 
 ---
-### Taplytics.identify(user_attributes) [*source*](/app/functions/identify.js)
+### Taplytics.identify(user_attributes)
 
 Identifies the user that's currently on the page. This helps link their activity on web with their activity on other platforms (iOS, Android).
 
@@ -98,7 +98,7 @@ Taplytics.identify({
 ```
 
 ---
-### Taplytics.track(event_name, [value], [event_attributes]) [*source*](/app/functions/track.js)
+### Taplytics.track(event_name, [value], [event_attributes])
 
 Tracks the occurance of an event for the current visitor (annonymous or identified). 
 
@@ -148,9 +148,9 @@ Taplytics.track("Finished Tutorial", {
 
 
 ---
-### Taplytics.page([category], [name], [page_attributes]) [*source*](/app/functions/page.js)
+### Taplytics.page([category], [name], [page_attributes])
 
-Tracks a page view. This is called once automatically from the [`init`](#taplyticsinittoken-options-source) function.
+Tracks a page view. This is called once automatically from the [`init`](#taplyticsinittoken-options) function.
 
 You can call it manually yourself to structure the page view events, as well as when you have a single page Javascript application that does its own routing.
 
@@ -203,9 +203,9 @@ Taplytics.page("Product Listings", "Shirts", {
 ```
 
 ---
-### Taplytics.reset() [*source*](/app/functions/reset.js)
+### Taplytics.reset()
 
-Resets the user object and assumes the visitor is now anonymous. This can be used to deatach the visitor from the user that you had used [`identify`](#taplyticsidentifyuser_attributes-source) on earlier in the session.
+Resets the user object and assumes the visitor is now anonymous. This can be used to deatach the visitor from the user that you had used [`identify`](#taplyticsidentifyuser_attributes) on earlier in the session.
 
 
 #### Returns
