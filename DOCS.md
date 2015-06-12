@@ -120,7 +120,7 @@ Tracks the occurance of an event for the current visitor (annonymous or identifi
 
 Note that `value` is identified as revenue. If you want to send information about the event itself, send it through `event_attributes`.
 
-### Aliases
+##### Aliases
 
 This function can also be called as follows:
 
