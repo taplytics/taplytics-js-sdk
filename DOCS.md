@@ -1,12 +1,13 @@
 Here are the APIs that Taplytics.js exposes:
 
+
 | Function | Description | 
 | -------- | ----------- |
-[init](#taplyticsinittoken-options) | Initializing Taplytics.js. |
-[identify](#taplyticsidentifyuser_attributes) | Identifying the user. |
-[track](#taplyticstrackevent_name-value-event_attributes) | Tracking events. |
-[page](#taplyticspagecategory-name-page_attributes) | Tracking page views. |
-[reset](#taplyticsreset) | Reseting User. |
+| [init](#taplyticsinittoken-options) | Initializing Taplytics.js. |
+| [identify](#taplyticsidentifyuser_attributes) | Identifying the user. |
+| [track](#taplyticstrackevent_name-value-event_attributes) | Tracking events. |
+| [page](#taplyticspagecategory-name-page_attributes) | Tracking page views. |
+| [reset](#taplyticsreset) | Reseting User. |
 
 If you haven't already, check out our guide on how to get started with our Javascript SDK [here](https://taplytics.com/docs/javascript-sdk).
 
