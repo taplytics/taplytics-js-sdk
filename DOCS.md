@@ -15,7 +15,9 @@ If you haven't already, check out our guide on how to get started with our Javas
 ---
 
 
-### init(token, [options])
+### init
+
+Usage: `Taplytics.init(token, [options])`
 
 Instantiates Taplytics.js.
 
@@ -56,7 +58,9 @@ Taplytics.init("js-sdk-token", {
 ---
 
 
-### identify(attributes)
+### identify
+
+Usage: `Taplytics.identify(user_attributes)`
 
 Identifies the user that's currently on the page. This helps link their activity on web with their activity on other platforms (iOS, Android).
 
@@ -64,16 +68,16 @@ You should call this function as soon as a user signs up or has logged in. You s
 
 
 ##### Arguments
-1. `[attributes={}]` (Object): User Attributes object.
-2. `[attributes.user_id]` (string/integer): User's ID (optional).
-3. `[attributes.email]` (string): User's Email (optional).
-4. `[attributes.gender]` (string): User's Gender, one of `male` or `female` (optional).
-5. `[attributes.age]` (integer): User's age as a number (optional).
-6. `[attributes.firstName]` (integer): User's first name (optional).
-7. `[attributes.lastName]` (integer): User's last name (optional).
-8. `[attributes.name]` (integer): User's full name (optional).
-9. `[attributes.avatarUrl]` (string): User's avatar/profile image URL (optional).
-10. `[attributes.custom_attr_name]` (string/integer/object): Any extra custom attributes (optional).
+1. `[user_attributes={}]` (Object): User Attributes object.
+2. `[user_attributes.user_id]` (string/integer): User's ID (optional).
+3. `[user_attributes.email]` (string): User's Email (optional).
+4. `[user_attributes.gender]` (string): User's Gender, one of `male` or `female` (optional).
+5. `[user_attributes.age]` (integer): User's age as a number (optional).
+6. `[user_attributes.firstName]` (integer): User's first name (optional).
+7. `[user_attributes.lastName]` (integer): User's last name (optional).
+8. `[user_attributes.name]` (integer): User's full name (optional).
+9. `[user_attributes.avatarUrl]` (string): User's avatar/profile image URL (optional).
+10. `[user_attributes.custom_attr_name]` (string/integer/object): Any extra custom attributes (optional).
 
 ##### Returns
 
@@ -108,7 +112,9 @@ Taplytics.identify({
 ---
 
 
-### track(name, [value], [attributes])
+### track
+
+Usage: `Taplytics.track(event_name, [value], [event_attributes])`
 
 Tracks the occurance of an event for the current visitor (annonymous or identified). 
 
@@ -122,9 +128,9 @@ This function can also be called as follows:
 
 ##### Arguments
 
-1. `name` (string): Event name.
+1. `event_name` (string): Event name.
 2. `value` (integer/double): Value of the event (optional).
-3. `attributes` (Object): Event attributes to be sent with the event (optional).
+3. `event_attributes` (Object): Event attributes to be sent with the event (optional).
 
 ##### Returns
 
@@ -160,7 +166,9 @@ Taplytics.track("Finished Tutorial", {
 ---
 
 
-### page([category], [name], [attributes])
+### page
+
+Usage: `Taplytics.page([category], [name], [page_attributes])`
 
 Tracks a page view. This is called once automatically from the [init](#taplyticsinittoken-options) function.
 
@@ -172,13 +180,13 @@ Currently, we do not listen on `window.History` state change events to do this a
 
 This function can also be caleld as follows:
 
-`Taplytics.page([name], [attributes]);`
+`Taplytics.page([name], [page_attributes]);`
 
 ##### Arguments
 
 1. `[category]` (string): Page Category (optional).
 2. `[name]` (string): Page Name (optional).
-3. `[attributes]` (Object): Page attributes object.
+3. `[page_attributes]` (Object): Page attributes object.
 
 ##### Returns
 
@@ -218,7 +226,9 @@ Taplytics.page("Product Listings", "Shirts", {
 ---
 
 
-### reset()
+### reset
+
+Usage: `Taplytics.reset()`
 
 Resets the user object and assumes the visitor is now anonymous. This can be used to deatach the visitor from the user that you had used [identify](#taplyticsidentifyuser_attributes) on earlier in the session.
 
