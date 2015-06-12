@@ -24,7 +24,7 @@ This should be the first function to be called on the page before all other func
 It also automatically calls the [page](#taplyticspagecategory-name-page_attributes) function (with no arguments) right away. You can disable this in the options.
 
 
-#### Arguments
+##### Arguments
 
 1. `token` (string): Taplytics JS SDK
 2. `[options]` (Object): The options object.
@@ -32,12 +32,12 @@ It also automatically calls the [page](#taplyticspagecategory-name-page_attribut
 4. `[options.log_level=0]` (integer): How much logging Taplytics should do. `1` is extra logging, `2` is lots of logging.
 
 
-#### Returns
+##### Returns
 
 (Object): Returns the Taplytics object on success, useful for chaining. When no token is provided, it returns `undefined`.
 
 
-#### Example
+##### Example
 
 ```javascript
 
@@ -63,7 +63,7 @@ Identifies the user that's currently on the page. This helps link their activity
 You should call this function as soon as a user signs up or has logged in. You should also call it at least once per page.
 
 
-#### Arguments
+##### Arguments
 1. `[user_attributes={}]` (Object): User Attributes object.
 2. `[user_attributes.user_id]` (string/integer): User's ID (optional).
 3. `[user_attributes.email]` (string): User's Email (optional).
@@ -75,11 +75,11 @@ You should call this function as soon as a user signs up or has logged in. You s
 9. `[user_attributes.avatarUrl]` (string): User's avatar/profile image URL (optional).
 10. `[user_attributes.custom_attr_name]` (string/integer/object): Any extra custom attributes (optional).
 
-#### Returns
+##### Returns
 
 (Object): Returns the Taplytics object, useful for chaining.
 
-#### Example
+##### Example
 
 ```javascript
 
@@ -120,17 +120,17 @@ This function can also be called as follows:
 
 `Taplytics.track(event_name, [event_attributes])`
 
-#### Arguments
+##### Arguments
 
 1. `event_name` (string): Event name.
 2. `value` (integer/double): Value of the event (optional).
 3. `event_attributes` (Object): Event attributes to be sent with the event (optional).
 
-#### Returns
+##### Returns
 
 (Object): Returns the Taplytics object, useful for chaining.
 
-#### Example
+##### Example
 
 ```javascript
 
@@ -168,23 +168,23 @@ You can call it manually yourself to structure the page view events, as well as 
 
 Currently, we do not listen on `window.History` state change events to do this automatically.
 
-#### Aliases
+##### Aliases
 
 This function can also be caleld as follows:
 
 `Taplytics.page([name], [page_attributes]);`
 
-#### Arguments
+##### Arguments
 
 1. `[category]` (string): Page Category (optional).
 2. `[name]` (string): Page Name (optional).
 3. `[page_attributes]` (Object): Page attributes object.
 
-#### Returns
+##### Returns
 
 (Object): Returns the Taplytics object, useful for chaining.
 
-#### Example
+##### Example
 
 ```javascript
 
@@ -223,11 +223,11 @@ Taplytics.page("Product Listings", "Shirts", {
 Resets the user object and assumes the visitor is now anonymous. This can be used to deatach the visitor from the user that you had used [identify](#taplyticsidentifyuser_attributes) on earlier in the session.
 
 
-#### Returns
+##### Returns
 
 (Object): Returns the Taplytics object, useful for chaining.
 
-#### Example
+##### Example
 
 ```javascript
 
