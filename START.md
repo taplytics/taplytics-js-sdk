@@ -1,9 +1,11 @@
 To fully utilize the power of Taplytics.js, you simply have to:
 
-1. [Initialize Taplytics.js](#1-load-taplytics)
-2. [Idenfity Users](#2-identify-users)
-3. [Track Events](#3-track-events)
-4. [Track Page Views](#4-track-page-views)
+| # | Step |
+| ---- | ---------------- |
+| 1 | [Initialize Taplytics.js](#1-load-taplytics) |
+| 2 | [Idenfity Users](#2-identify-users) | 
+| 3 | [Track Events](#3-track-events) |
+| 4 | [Track Page Views](#4-track-page-views) |
 
 ### 1. Load Taplytics
 
