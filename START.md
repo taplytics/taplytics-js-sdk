@@ -23,7 +23,7 @@ Other than that, all you have to do is initialize our SDK by using the `init` fu
 Taplytics.init("JS_SDK_TOKEN");
 ```
 
-Replace `JS_SDK_TOKEN` with with your JS SDK token. You can find your token in the settings page of your project on Taplytics.com.
+Replace `JS_SDK_TOKEN` with with your JS SDK token. You can find your token in the settings page of your project.
 
 Note that this **will send a page view event** to us. If you want to disable the automatic page view event when Taplytics.js is initialized, check the documentation on the `init` function [here](/DOCS.md#taplyticsinittoken-options-source) and about calling the `page` function manually [here](/DOCS.md#taplyticspagecategory-name-page_attributes-source).
 

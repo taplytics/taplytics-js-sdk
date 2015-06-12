@@ -1,18 +1,24 @@
 Here are the APIs that Taplytics.js exposes:
 
-- [`init`](#taplyticsinittoken-options)
-- [`identify`](#taplyticsidentifyuser_attributes)
-- [`track`](#taplyticstrackevent_name-value-event_attributes)
-- [`page`](#taplyticspagecategory-name-page_attributes)
-- [`reset`](#taplyticsreset)
+<ul class="contents-table">
+    <li>[`init`](#taplyticsinittoken-options)</li>
+    <li>[`identify`](#taplyticsidentifyuser_attributes)</li>
+    <li>[`track`](#taplyticstrackevent_name-value-event_attributes)</li>
+    <li>[`page`](#taplyticspagecategory-name-page_attributes)</li>
+    <li>[`reset`](#taplyticsreset)</li>
+</ul>
 
 If you haven't already, check out our guide on how to get started with our Javascript SDK [here](https://taplytics.com/docs/javascript-sdk).
+
+
+---
+
 
 ### Taplytics.init(token, [options])
 
 Instantiates Taplytics.js.
 
-This should be the first function to be called on the page before all other functions. You can find your JS SDK Key in the Settings section of your project on Taplytics.com. 
+This should be the first function to be called on the page before all other functions. You can find your JS SDK Key in the Settings section of your project. 
 
 It also automatically calls the [`page`](#taplyticspagecategory-name-page_attributes) function (with no arguments) right away. You can disable this in the options.
 
@@ -45,7 +51,10 @@ Taplytics.init("js-sdk-token", {
 
 ```
 
+
 ---
+
+
 ### Taplytics.identify(user_attributes)
 
 Identifies the user that's currently on the page. This helps link their activity on web with their activity on other platforms (iOS, Android).
@@ -94,7 +103,10 @@ Taplytics.identify({
 
 ```
 
+
 ---
+
+
 ### Taplytics.track(event_name, [value], [event_attributes])
 
 Tracks the occurance of an event for the current visitor (annonymous or identified). 
@@ -145,6 +157,8 @@ Taplytics.track("Finished Tutorial", {
 
 
 ---
+
+
 ### Taplytics.page([category], [name], [page_attributes])
 
 Tracks a page view. This is called once automatically from the [`init`](#taplyticsinittoken-options) function.
@@ -199,7 +213,10 @@ Taplytics.page("Product Listings", "Shirts", {
 
 ```
 
+
 ---
+
+
 ### Taplytics.reset()
 
 Resets the user object and assumes the visitor is now anonymous. This can be used to deatach the visitor from the user that you had used [`identify`](#taplyticsidentifyuser_attributes) on earlier in the session.
