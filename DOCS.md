@@ -1,7 +1,7 @@
 Here are the APIs that Taplytics.js exposes:
 
-Function | Description | 
-| ------- | ---------- |
+| Function | Description | 
+| -------- | ----------- |
 [init](#taplyticsinittoken-options) | Initializing Taplytics.js. |
 [identify](#taplyticsidentifyuser_attributes) | Identifying the user. |
 [track](#taplyticstrackevent_name-value-event_attributes) | Tracking events. |
