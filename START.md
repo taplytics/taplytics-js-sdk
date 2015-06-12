@@ -27,7 +27,7 @@ Taplytics.init("JS_SDK_TOKEN");
 
 Replace `JS_SDK_TOKEN` with with your JS SDK token. You can find your token in the settings page of your project.
 
-Note that this **will send a page view event** to us. If you want to disable the automatic page view event when Taplytics.js is initialized, check the documentation on the `init` function [here](https://taplytics.com/docs/javascript-sdk/reference#taplyticsinittoken-options) and about calling the `page` function manually [here](https://taplytics.com/docs/javascript-sdk/reference#taplyticspagecategory-name-page_attributes).
+Note that this **will send a page view event** to us. If you want to disable the automatic page view event when Taplytics.js is initialized, check the documentation on the `init` function [here](https://taplytics.com/docs/javascript-sdk/reference#init) and about calling the `page` function manually [here](https://taplytics.com/docs/javascript-sdk/reference#page).
 
 ### 2. Identify Users
 
@@ -49,7 +49,7 @@ Taplytics.identify({
 });
 ```
 
-We accept a few known attributes and all unknown attributes are saved as custom attributes that can also be used. Read more about the `identify` function [here](https://taplytics.com/docs/javascript-sdk/reference#taplyticsidentifyuser_attributes).
+We accept a few known attributes and all unknown attributes are saved as custom attributes that can also be used. Read more about the `identify` function [here](https://taplytics.com/docs/javascript-sdk/reference#identify).
 
 
 
@@ -67,7 +67,7 @@ Taplytics.track("Purchase", 10, {
 });
 ```
 
-Note that you can send us revenue information by passing a value to the function and any other data that you can use when creating segments within Taplytics. Read more about the `track` function [here](https://taplytics.com/docs/javascript-sdk/reference#taplyticstrackevent_name-value-event_attributes).
+Note that you can send us revenue information by passing a value to the function and any other data that you can use when creating segments within Taplytics. Read more about the `track` function [here](https://taplytics.com/docs/javascript-sdk/reference#track).
 
 
 ### 4. Track Page Views
@@ -82,5 +82,5 @@ Taplytics.page("Product Listings", "Shirts", {
 });
 ```
 
-Note that you can call the function by itself without any arguments as well. Read more about the `page` function [here](https://taplytics.com/docs/javascript-sdk/reference#taplyticspagecategory-name-page_attributes).
+Note that you can call the function by itself without any arguments as well. Read more about the `page` function [here](https://taplytics.com/docs/javascript-sdk/reference#page).
 
