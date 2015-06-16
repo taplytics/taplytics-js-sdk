@@ -1,24 +1,32 @@
-Below you can find all the APIs that Taplytics.js exposes.
+Here are the APIs that Taplytics.js exposes:
 
 
-- [`init`](#taplyticsinittoken-options)
-- [`identify`](#taplyticsidentifyuser_attributes)
-- [`track`](#taplyticstrackevent_name-value-event_attributes)
-- [`page`](#taplyticspagecategory-name-page_attributes)
-- [`reset`](#taplyticsreset)
+| Function | Description | 
+| -------- | ----------- |
+| [init](#init) | Initializing Taplytics.js. |
+| [identify](#identify) | Identifying the user. |
+| [track](#track) | Tracking events. |
+| [page](#page) | Tracking page views. |
+| [reset](#reset) | Reseting User. |
 
-# Taplytics Javascript API
+If you haven't already, check out our guide on how to get started with our Javascript SDK [here](https://taplytics.com/docs/javascript-sdk).
 
-## Taplytics.init(token, [options])
+
+---
+
+
+### init
+
+Usage: `Taplytics.init(token, [options])`
 
 Instantiates Taplytics.js.
 
-This should be the first function to be called on the page before all other functions. You can find your JS SDK Key in the Settings section of your project on Taplytics.com. 
+This should be the first function to be called on the page before all other functions. You can find your JS SDK Key in the Settings section of your project. 
 
-It also automatically calls the [`page`](#taplyticspagecategory-name-page_attributes) function (with no arguments) right away. You can disable this in the options.
+It also automatically calls the [page](#taplyticspagecategory-name-page_attributes) function (with no arguments) right away. You can disable this in the options.
 
 
-#### Arguments
+##### Arguments
 
 1. `token` (string): Taplytics JS SDK
 2. `[options]` (Object): The options object.
@@ -26,12 +34,12 @@ It also automatically calls the [`page`](#taplyticspagecategory-name-page_attrib
 4. `[options.log_level=0]` (integer): How much logging Taplytics should do. `1` is extra logging, `2` is lots of logging.
 
 
-#### Returns
+##### Returns
 
 (Object): Returns the Taplytics object on success, useful for chaining. When no token is provided, it returns `undefined`.
 
 
-#### Example
+##### Example
 
 ```javascript
 
@@ -46,15 +54,20 @@ Taplytics.init("js-sdk-token", {
 
 ```
 
+
 ---
-## Taplytics.identify(user_attributes)
+
+
+### identify
+
+Usage: `Taplytics.identify(user_attributes)`
 
 Identifies the user that's currently on the page. This helps link their activity on web with their activity on other platforms (iOS, Android).
 
 You should call this function as soon as a user signs up or has logged in. You should also call it at least once per page.
 
 
-#### Arguments
+##### Arguments
 1. `[user_attributes={}]` (Object): User Attributes object.
 2. `[user_attributes.user_id]` (string/integer): User's ID (optional).
 3. `[user_attributes.email]` (string): User's Email (optional).
@@ -66,11 +79,11 @@ You should call this function as soon as a user signs up or has logged in. You s
 9. `[user_attributes.avatarUrl]` (string): User's avatar/profile image URL (optional).
 10. `[user_attributes.custom_attr_name]` (string/integer/object): Any extra custom attributes (optional).
 
-#### Returns
+##### Returns
 
 (Object): Returns the Taplytics object, useful for chaining.
 
-#### Example
+##### Example
 
 ```javascript
 
@@ -95,30 +108,35 @@ Taplytics.identify({
 
 ```
 
+
 ---
-## Taplytics.track(event_name, [value], [event_attributes])
+
+
+### track
+
+Usage: `Taplytics.track(event_name, [value], [event_attributes])`
 
 Tracks the occurance of an event for the current visitor (annonymous or identified). 
 
 Note that `value` is identified as revenue. If you want to send information about the event itself, send it through `event_attributes`.
 
-### Aliases
+##### Aliases
 
 This function can also be called as follows:
 
 `Taplytics.track(event_name, [event_attributes])`
 
-#### Arguments
+##### Arguments
 
 1. `event_name` (string): Event name.
 2. `value` (integer/double): Value of the event (optional).
 3. `event_attributes` (Object): Event attributes to be sent with the event (optional).
 
-#### Returns
+##### Returns
 
 (Object): Returns the Taplytics object, useful for chaining.
 
-#### Example
+##### Example
 
 ```javascript
 
@@ -146,31 +164,35 @@ Taplytics.track("Finished Tutorial", {
 
 
 ---
-## Taplytics.page([category], [name], [page_attributes])
 
-Tracks a page view. This is called once automatically from the [`init`](#taplyticsinittoken-options) function.
+
+### page
+
+Usage: `Taplytics.page([category], [name], [page_attributes])`
+
+Tracks a page view. This is called once automatically from the [init](#taplyticsinittoken-options) function.
 
 You can call it manually yourself to structure the page view events, as well as when you have a single page Javascript application that does its own routing.
 
 Currently, we do not listen on `window.History` state change events to do this automatically.
 
-#### Aliases
+##### Aliases
 
 This function can also be caleld as follows:
 
 `Taplytics.page([name], [page_attributes]);`
 
-#### Arguments
+##### Arguments
 
 1. `[category]` (string): Page Category (optional).
 2. `[name]` (string): Page Name (optional).
 3. `[page_attributes]` (Object): Page attributes object.
 
-#### Returns
+##### Returns
 
 (Object): Returns the Taplytics object, useful for chaining.
 
-#### Example
+##### Example
 
 ```javascript
 
@@ -200,17 +222,22 @@ Taplytics.page("Product Listings", "Shirts", {
 
 ```
 
+
 ---
-## Taplytics.reset()
-
-Resets the user object and assumes the visitor is now anonymous. This can be used to deatach the visitor from the user that you had used [`identify`](#taplyticsidentifyuser_attributes) on earlier in the session.
 
 
-#### Returns
+### reset
+
+Usage: `Taplytics.reset()`
+
+Resets the user object and assumes the visitor is now anonymous. This can be used to deatach the visitor from the user that you had used [identify](#taplyticsidentifyuser_attributes) on earlier in the session.
+
+
+##### Returns
 
 (Object): Returns the Taplytics object, useful for chaining.
 
-#### Example
+##### Example
 
 ```javascript
 
