@@ -7,7 +7,7 @@ Here are the APIs that Taplytics.js exposes:
 | [identify](#identify) | Identifying the user. |
 | [track](#track) | Tracking events. |
 | [page](#page) | Tracking page views. |
-| [reset](#reset) | Resseting User. |
+| [reset](#reset) | Reseting User. |
 
 If you haven't already, check out our guide on how to get started with our Javascript SDK [here](https://taplytics.com/docs/javascript-sdk).
 
