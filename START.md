@@ -3,13 +3,13 @@ To fully utilize the power of Taplytics.js, you simply have to:
 | # | Step |
 | ---- | ---------------- |
 | 1 | [Initialize Taplytics.js](#1-load-taplytics) |
-| 2 | [Idenfity Users](#2-identify-users) | 
+| 2 | [Identify Users](#2-identify-users) | 
 | 3 | [Track Events](#3-track-events) |
 | 4 | [Track Page Views](#4-track-page-views) |
 
 ### 1. Load Taplytics
 
-In order to install Taplytics.js, you have to include the following snippet into the header or body of your site:
+To install Taplytics.js, you have to include the following snippet into the header or body of your site:
 
 ```html
 <script type="text/javascript">
@@ -25,7 +25,7 @@ Other than that, all you have to do is initialize our SDK by using the `init` fu
 Taplytics.init("JS_SDK_TOKEN");
 ```
 
-Replace `JS_SDK_TOKEN` with with your JS SDK token. You can find your token in the settings page of your project.
+Replace `JS_SDK_TOKEN` with your JS SDK token. You can find your token in the settings page of your project.
 
 Note that this **will send a page view event** to us. If you want to disable the automatic page view event when Taplytics.js is initialized, check the documentation on the `init` function [here](https://taplytics.com/docs/javascript-sdk/reference#init) and about calling the `page` function manually [here](https://taplytics.com/docs/javascript-sdk/reference#page).
 
@@ -72,9 +72,9 @@ Note that you can send us revenue information by passing a value to the function
 
 ### 4. Track Page Views
 
-As we mentioned earlier, we automatically track page views for you when you initialize our SDK. However, if you would like to give your pages better names, want attach more information to your page views or if you're using a one-page web framework (Angular, React, Backbone, Ember, etc.), you will have to call a `page` function.
+As we mentioned earlier, we automatically track page views for you when you initialize our SDK. You will have to call a page function if you would like to perform the following; rename your page views, attach more information to your page views, or if you're using a one-page web framework (Angular, React, Backbone, Ember, etc.), you will have to call a `page` function.
 
-You can specificy a category, a name, and extra attributes when calling the page function:
+You can specificy a specify, a name, and extra attributes when calling the page function:
 
 ```javascript
 Taplytics.page("Product Listings", "Shirts", {
