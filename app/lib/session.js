@@ -37,11 +37,19 @@ exports.get = function(key, is_json) {
 
     if (!cookieKey)
         return undefined;
-    
+
     if (!is_json || !(JSON && JSON.parse))
         return Cookies.get(cookieKey);
-    else
-        return JSON.parse(Cookies.get(cookieKey));
+    else {
+        var val = Cookies.get(cookieKey);
+
+        try {
+            return JSON.parse(val);
+        } catch (err) {
+            logger.error("Session.get(" + key + ") failed to parse JSON.", err, logger.DEBUG);
+            return val;
+        }
+    }
 };
 
 exports.tick = function() {
@@ -52,6 +60,9 @@ exports.tick = function() {
 
 exports.set = function(key, value, is_json) {
     if (!key || value === undefined)
+        return false;
+
+    if (("" + value).length === 0)
         return false;
 
     exports.tick();

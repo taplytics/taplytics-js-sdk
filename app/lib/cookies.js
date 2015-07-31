@@ -50,7 +50,7 @@ function getJar() {
 
             while (cValue.charAt(0) == ' ') cValue = cValue.substring(1);
 
-            jar.setCookies(cValue, accessInfo);            
+            jar.setCookies(cValue, accessInfo);
         }
     }
 
