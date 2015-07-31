@@ -3,7 +3,7 @@ To fully utilize the power of Taplytics.js, you simply have to:
 | # | Step |
 | ---- | ---------------- |
 | 1 | [Initialize Taplytics.js](#1-load-taplytics) |
-| 2 | [Identify Users](#2-identify-users) | 
+| 2 | [Identify Users](#2-identify-users) |
 | 3 | [Track Events](#3-track-events) |
 | 4 | [Track Page Views](#4-track-page-views) |
 
@@ -72,9 +72,9 @@ Note that you can send us revenue information by passing a value to the function
 
 ### 4. Track Page Views
 
-As we mentioned earlier, we automatically track page views for you when you initialize our SDK. You will have to call a page function if you would like to perform the following; rename your page views, attach more information to your page views, or if you're using a one-page web framework (Angular, React, Backbone, Ember, etc.), you will have to call a `page` function.
+As we mentioned earlier, we automatically track page views for you when you initialize our SDK. You will have to call the `page` function if you would like to perform the following; rename your page views, attach more information to your page views, or if you're using a one-page web framework (Angular, React, Backbone, Ember, etc.).
 
-You can specificy a specify, a name, and extra attributes when calling the page function:
+You can specify a category, a name, and extra attributes when calling the page function:
 
 ```javascript
 Taplytics.page("Product Listings", "Shirts", {
@@ -83,4 +83,3 @@ Taplytics.page("Product Listings", "Shirts", {
 ```
 
 Note that you can call the function by itself without any arguments as well. Read more about the `page` function [here](https://taplytics.com/docs/javascript-sdk/reference#page).
-
