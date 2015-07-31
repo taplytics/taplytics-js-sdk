@@ -62,7 +62,7 @@ Taplytics.init("js-sdk-token", {
 
 Usage: `Taplytics.identify(user_attributes)`
 
-Identifies the user that's currently on the page. This helps link their activity on web with their activity on other platforms (iOS, Android).
+Identifies the user that's currently on the page. This helps link their activity on the web with their activity on other platforms (iOS, Android).
 
 You should call this function as soon as a user signs up or has logged in. You should also call it at least once per page.
 
@@ -116,7 +116,7 @@ Taplytics.identify({
 
 Usage: `Taplytics.track(event_name, [value], [event_attributes])`
 
-Tracks the occurance of an event for the current visitor (annonymous or identified). 
+Tracks the occurrence of an event for the current visitor (anonymous or identified). 
 
 Note that `value` is identified as revenue. If you want to send information about the event itself, send it through `event_attributes`.
 
@@ -214,7 +214,7 @@ Taplytics.page("Shirts Page", {
     products_count: 150
 });
 
-// Track a page view with a name, a category and attributes
+// Track a page view with a name, a category, and attributes
 
 Taplytics.page("Product Listings", "Shirts", {
     products_count: 150
