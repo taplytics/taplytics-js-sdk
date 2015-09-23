@@ -1,6 +1,6 @@
 {
   "name": "taplytics-js",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Taplytics JS SDK",
   "main": "app/index.js",
   "repository": {

@@ -7,7 +7,7 @@ exports.obj = function() {
     else if (app.env === 'dev' || app.env === 'development')
         config.baseAPI = "https://dev.taplytics.com/public_api/v1/";
     else if (app.env === 'local')
-        config.baseAPI = "https://ping.taplytics.com/public_api/v1/";
+        config.baseAPI = "http://localhost:3002/public_api/v1/";
 
     config.eventsFlushQueueTimeout = 4000;
 
