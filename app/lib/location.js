@@ -1,5 +1,5 @@
 var swizzle = require('../lib/swizzle');
-var logger = require('./logger');
+var log = require('./logger');
 
 var override = {};
 
@@ -20,10 +20,10 @@ exports.attr = function(key) {
 };
 
 exports.listen = function(app) {
-    
+
     // TODO: pushState / onpopstate / onhashchange
     // if (window.history) {
-    //     logger.log("Taplytics: Listening on history changes to track sessions.", null, logger.LOG);
+    //     log.log("Taplytics: Listening on history changes to track sessions.", null, log.LOG);
 
     //     window.addEventListener('popstate', onpopstate);
 
@@ -42,7 +42,7 @@ function locationAttribute(attr) {
 
     if (attr === 'title')
         return document.title;
-    
+
     if (document.location)
         return document.location[attr];
     else return null;
@@ -51,23 +51,23 @@ function locationAttribute(attr) {
 // function onpopstate(e) {
 //  // exports.toObject will work just fine here.
 
-//     logger.log("onpopstate:", e, logger.DEBUG);
-//     logger.log("location:", exports.toObject(), logger.DEBUG);
+//     log.log("onpopstate:", e, log.DEBUG);
+//     log.log("location:", exports.toObject(), log.DEBUG);
 // }
 
 // function onpushstate(stateObj, title, state) {
 //  // exports.toObject won't work as pushState doesn't change document.location
 
-//     logger.log("onpushstate:", state, logger.DEBUG);
-//     logger.log("location", exports.toObject(), logger.DEBUG);
+//     log.log("onpushstate:", state, log.DEBUG);
+//     log.log("location", exports.toObject(), log.DEBUG);
 // }
 
 // function onreplacestate(stateObj, title, state) {
-//     logger.log("onreplacestate:", state, logger.DEBUG);
-//     logger.log("location", exports.toObject(), logger.DEBUG);    
+//     log.log("onreplacestate:", state, log.DEBUG);
+//     log.log("location", exports.toObject(), log.DEBUG);
 // }
 
 // function onhashchange(e) {
-//  logger.log("onhashchange:", e, logger.DEBUG);
-//     logger.log("location:", exports.toObject(), logger.DEBUG);
+//  log.log("onhashchange:", e, log.DEBUG);
+//     log.log("location:", exports.toObject(), log.DEBUG);
 // }

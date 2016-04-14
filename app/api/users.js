@@ -1,103 +1,71 @@
 var request = require('./base');
-var location = require('../lib/location');
 var source = require('../lib/source');
-var logger = require('../lib/logger');
+var log = require('../lib/logger');
 var session = require('../lib/session');
-var config = require('../../config');
 
 exports.users_path = 'users';
 
+//
 // Requests
+//
+exports.del = function(next) {
+    session.sessionConfigPromise(function() {
+        var appUserID = session.getAppUserID();
+        if (!appUserID)
+            return;
 
-exports.del = function(callback) {
-    var appUserID = session.getAppUserID();
+        var sessionAttrs = {};
+        sessionAttrs.sid = session.getSessionID();
+        sessionAttrs.ad  = session.getSessionUUID();
 
-    if (!appUserID)
-        return;
+        var params = {};
+        var body = {
+            session: sessionAttrs
+        };
 
-    var sessionAttrs = {};
+        log.log("users_del", body, log.DEBUG);
 
-    sessionAttrs.sid = session.getSessionID();
-    sessionAttrs.ad  = session.getSessionUUID();
+        request.del(exports.users_path + "/" + appUserID, params, body, function(err, response) {
+            if (err)
+                log.error("Couldn't properly rest user.", response, log.DEBUG);
+            else
+                log.log("Successfully reset the user.", response, log.DEBUG);
 
-    var params = {};
-
-    var payload = {
-        session: sessionAttrs
-    };
-
-    logger.log("users_del", payload, logger.DEBUG);
-
-    request.del(exports.users_path + "/" + appUserID, params, payload, function(err, response) {
-        if (err)
-            logger.error("Couldn't properly rest user.", response, logger.DEBUG);
-        else
-            logger.log("Successfully reset the user.", response, logger.DEBUG);
-
-        return callback && callback(err, response);
+            return next && next(err, response);
+        });
     });
 };
 
-exports.post = function(user_attrs, failure_message, callback) {
-    var locationData = location.toObject(); // document.location
-    var sourceData = source(); // document.referrer + location.search
-    var appUser = user_attrs;
-    var sessionAttrs = {};
+exports.post = function(user_attrs, failure_message, next) {
+    session.sessionConfigPromise(function() {
+        var appUser = user_attrs;
+        var sessionAttrs = session.getSessionAttributes();
+        if (!appUser) appUser = {};
+        appUser.auid = session.getAppUserID();
 
-    if (!appUser)
-        appUser = {};
+        var body = {
+            session: sessionAttrs,
+            app_user: appUser
+        };
 
-    sessionAttrs.sid = session.getSessionID();
-    sessionAttrs.ad  = session.getSessionUUID();
-    sessionAttrs.adt = 'browser';
-    sessionAttrs.ct  = 'browser';
-    sessionAttrs.lv  = config.isProduction() ? '0' : '1';
-    sessionAttrs.rfr = sourceData.referrer;
+        log.log("users_post", body, log.DEBUG);
 
-    sessionAttrs.exm = sourceData.search.utm_medium;
-    sessionAttrs.exs = sourceData.search.utm_source;
-    sessionAttrs.exc = sourceData.search.utm_campaign;
-    sessionAttrs.ext = sourceData.search.utm_term;
-    sessionAttrs.exct = sourceData.search.utm_content;
-
-    sessionAttrs.prms = {
-        search: sourceData.search,
-        location: locationData
-    };
-
-    if (navigator && navigator.userAgent)
-        sessionAttrs.prms.userAgent = navigator.userAgent;
-
-    appUser.auid = session.getAppUserID();
-
-    var params = {};
-
-    var payload = {
-        session: sessionAttrs,
-        app_user: appUser
-    };
-
-    logger.log("users_post", payload, logger.DEBUG);
-
-    request.post(exports.users_path, params, payload, function(err, response) {
-        if (err) {
-            logger.error(failure_message, err, logger.USER);
-        } else {
-            var data = response.body;
-
-            if (data) {
-                logger.log("Users.post: successfully created/updated user.", response, logger.DEBUG);
-
-                var appUserID = data.app_user_id;
-                var sessionID = data.session_id;
-
-                session.setAppUserID(appUserID);
-                session.setSessionID(sessionID);
-                session.tick();
-            } else {
-                logger.error(failure_message, null, logger.USER);
+        request.post(exports.users_path, {}, body, function(err, response) {
+            if (err) {
+                log.error(failure_message, err, log.USER);
             }
-        }
-        return callback && callback(err, response);
+            else {
+                var data = response.body;
+                if (data) {
+                    log.log("Users.post: successfully created/updated user.", response, log.DEBUG);
+                    session.setAppUserID(data.app_user_id);
+                    session.setSessionID(data.session_id);
+                    session.tick();
+                } else {
+                    log.error(failure_message, null, log.USER);
+                }
+            }
+            return next && next(err, response);
+        });
     });
 };

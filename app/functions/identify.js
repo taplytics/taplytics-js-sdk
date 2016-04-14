@@ -1,31 +1,26 @@
-var logger = require('../lib/logger');
+var log = require('../lib/logger');
 
 module.exports = function(attrs) {
     if (!this.isReady()) {
-        logger.error("Taplytics::identify: you have to call Taplytics.init first.", null, logger.USER);
+        log.error("Taplytics::identify: you have to call Taplytics.init first.", null, log.USER);
         return this;
     }
-
     if (!isValidAttrs(attrs)) {
-        logger.error("Taplytics::identify: you have to pass in an object with user attributes.", null, logger.USER);
-
+        log.error("Taplytics::identify: you have to pass in an object with user attributes.", null, log.USER);
         return this;
     }
 
     var parsedAttrs = parseAttrs(attrs);
-
     this.api.users.post(parsedAttrs, "Taplytics::identify: failed to save the user attributes properly.");
 
     return this;
 };
 
+//
 // Helpers
-
+//
 function isValidAttrs(attrs) {
-    if (!attrs || (attrs && (typeof attrs !== "object")))
-        return false;
-
-    return true;
+    return !(!attrs || (attrs && (typeof attrs !== "object")));
 }
 
 function parseAttrs(attrs) {
@@ -50,7 +45,6 @@ function parseAttrs(attrs) {
 
     return userAttrs;
 }
-
 
 // Rather slow implmenetation, but it's fine since the data size is very small
 function isTopLevelKey(key) {
@@ -77,15 +71,15 @@ function isTopLevelKey(key) {
             for (acceptedKeyIndex = 0; acceptedKeyIndex < acceptedKeys.length; acceptedKeyIndex++) {
                 var acceptedKey = acceptedKeys[acceptedKeyIndex];
 
-                if (acceptedKey && key && acceptedKey == key)
+                if (acceptedKey && key && acceptedKey == key) {
                     return {
                         isTopLevel: true,
                         acceptedKey: acceptedKey
                     };
-            }           
+                }
+            }
         }
     }
-
 
     return {
         isTopLevel: false

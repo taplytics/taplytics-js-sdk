@@ -1,6 +1,6 @@
 var request = require('superagent');
 var config = require('../../config');
-var logger = require('../lib/logger');
+var log = require('../lib/logger');
 var Queue = require('../lib/queue');
 var Qs = require('qs');
 
@@ -18,27 +18,30 @@ exports.get  = queuedGetRequest;
 exports.post = queuedPostRequest;
 exports.del  = queuedDelRequest;
 
-
+//
 // Requests
+//
 function getRequest(path, queryDatum, cb) {
-    var params = getRequestQueryAndPayload(queryDatum); 
+    var params = getRequestQueryAndPayload(queryDatum);
     var url = assembleURL(path);
 
     request
         .get(url)
         .query(params.query)
+        //.set('Access-Control-Allow-Origin', '*')
         .end(callbackWrapper(url, cb));
 }
 
 function postRequest(path, queryDatum, payloadDatum, cb) {
-    var params = getRequestQueryAndPayload(queryDatum, payloadDatum);   
+    var params = getRequestQueryAndPayload(queryDatum, payloadDatum);
     var url = assembleURL(path);
 
     request
         .post(url)
         .query(params.query)
         .set('Content-Type', 'application/base64+json')
-        .send(params.payload)        
+        //.set('Access-Control-Allow-Origin', '*')
+        .send(params.payload)
         .end(callbackWrapper(url, cb));
 }
 
@@ -59,12 +62,13 @@ function setPublicToken(token) {
     this.publicToken = token;
 }
 
+//
 // Processing
-
+//
 function callbackWrapper(url, cb) {
     return function(err, res) {
         if (err)
-            logger.error("Error: " + url, err, logger.DEBUG);
+            log.error("Error: " + url, err, log.DEBUG);
 
         if (cb && typeof cb === 'function')
             cb(err, res);
@@ -88,18 +92,18 @@ function queueRequest(requestFunction) {
 function processQueue() {
     if (!requestsQueue.isEmpty()) {
         isRequesting = true;
-
         var queueItem = requestsQueue.dequeue();
 
-        logger.log("Processing request", queueItem, logger.DEBUG);
+        log.log("Processing request", queueItem, log.DEBUG);
         return queueItem && queueItem.requestFunction && queueItem.requestFunction.apply(exports, queueItem.args);
     } else {
         isRequesting = false;
     }
 }
 
+//
 // Helper Methods
-
+//
 function assembleURL(path, query) {
     return config.obj().baseAPI + (path || '') + queryString(query);
 }

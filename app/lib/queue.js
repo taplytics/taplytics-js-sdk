@@ -19,10 +19,8 @@ function Queue() {
             return 0;
 
         var index = 0;
-
         for (index = 0; index < items.length; index++) {
             var item = items[index];
-
             this.enqueue(item);
         }
 
@@ -39,9 +37,7 @@ function Queue() {
 
     this.flush = function() {
         var oldQueue = queue.slice();
-
         queue = [];
-
         return oldQueue;
     };
 

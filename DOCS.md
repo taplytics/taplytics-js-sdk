@@ -3,11 +3,16 @@ Here are the APIs that Taplytics.js exposes:
 
 | Function | Description | 
 | -------- | ----------- |
-| [init](#init) | Initializing Taplytics.js. |
-| [identify](#identify) | Identifying the user. |
-| [track](#track) | Tracking events. |
-| [page](#page) | Tracking page views. |
-| [reset](#reset) | Reseting User. |
+| [init](#init) | Initializing Taplytics.js |
+| [identify](#identify) | Identifying the user |
+| [track](#track) | Tracking events |
+| [page](#page) | Tracking page views |
+| [reset](#reset) | Reseting User |
+| [propertiesLoaded](#propertiesloaded) | Taplytics properties loaded |
+| [runningExperiments](#runningexperiments) | Taplytics running experiments |
+| [variable](#variable) | Taplytics variable |
+| [codeBlock](#codeblock) | Taplytics code block |
+
 
 If you haven't already, check out our guide on how to get started with our Javascript SDK [here](https://taplytics.com/docs/javascript-sdk).
 
@@ -244,5 +249,116 @@ Resets the user object and assumes the visitor is now anonymous. This can be use
 // Reset user
 
 Taplytics.reset();
+
+```
+
+---
+
+
+### propertiesLoaded
+
+Usage: `Taplytics.propertiesLoaded([callback])`
+
+Calls the function provided when the SDK's properties have loaded from Taplytics's servers.
+
+##### Arguments
+
+1. `[callback]` (function): function to callback when properties have loaded.
+
+##### Example
+
+```javascript
+
+Taplytics.propertiesLoaded(function() { 
+    // properties have loaded
+});
+
+```
+
+---
+
+
+### runningExperiments
+
+Usage: `Taplytics.runningExperiments(callback)`
+
+Calls the function provided with an Object containing the running experiments and variation names when the SDK's config has loaded from Taplytics's servers.
+
+##### Arguments
+
+1. `callback` (function): function to callback with running experiments and variations. With the Object's keys as experiment names, and values as the variation name.
+
+##### Example
+
+```javascript
+
+Taplytics.runningExperiments(function(expAndVars) {
+    // For example: 
+    // expAndVars = {
+    //  "Experiment 1": "baseline",
+    //  "Experiment 2": "Variation 1"
+    //};
+});
+
+```
+
+---
+
+
+### variable
+
+Usage: `Taplytics.varible(name, defaultValue, [updatedBlock])`
+
+Creates a Taplytics Variable with values that are controlled by your running experiments.
+
+##### Arguments
+
+1. `name` (string): Variable Name.
+2. `defaultValue` (string/number/boolean): Variable's default value.
+3. `[updatedBlock]` (function): Update block to be called when the Variable's `value` is set (optional).
+
+##### Returns
+
+(TLVariable): Returns a Taplytics Variable, use `value` to get the variable's value
+
+##### Example
+
+```javascript
+
+// Using a asynchronous variable with the updated block
+Taplytics.variable("JS String", "default", function(value) {
+    console.log("JS String value: " + value);
+});
+
+// Using a synchronous variable
+Taplytics.propertiesLoaded(function() {
+    var syncVar = Taplytics.variable("JS String", "default");
+    console.log("JS String Sync value: " + syncVar.value);
+});
+
+```
+
+---
+
+
+### codeBlock
+
+Usage: `Taplytics.codeBlock(name, codeBlock)`
+
+Creates a Taplytics Code Block that will be run if enabled for the running experiment/variation through Taplytics website.
+
+##### Arguments
+
+1. `name` (string): Variable Name.
+3. `codeBlock` (function): Code Block to be called if enabled for the experiment's variation.
+
+##### Example
+
+```javascript
+
+Taplytics.codeBlock("JS CodeBlock", function() {
+    console.log("JS Code Block");
+    // run your code here
+});
 
 ```

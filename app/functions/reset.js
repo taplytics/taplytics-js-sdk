@@ -1,9 +1,9 @@
-var logger = require('../lib/logger');
+var log = require('../lib/logger');
 var session = require('../lib/session');
 
 module.exports = function() {
     if (!this.isReady()) {
-        logger.error("Taplytics::reset: you have to call Taplytics.init first.", null, logger.USER);
+        log.error("Taplytics::reset: you have to call Taplytics.init first.", null, log.USER);
         return false;
     }
 
@@ -11,10 +11,9 @@ module.exports = function() {
 
     this.api.users.del();
 
-    session.deleteSessionID();
-    session.deleteAppUserID();
+    session.resetSession();
 
-    this.api.users.post({}, "Taplytics: couldn't create a new session/user. Taplytics will not function properly.");
+    this.api.config.get();
 
     return this;
 };

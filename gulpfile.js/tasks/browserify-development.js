@@ -2,7 +2,7 @@ var gulp = require('gulp');
 var _ = require('lodash');
 var browserify = require('browserify');
 var watchify = require('watchify');
-var config   = require('../config');
+var config = require('../config');
 var logger = require('../lib/compileLogger');
 
 var source = require('vinyl-source-stream');
@@ -22,7 +22,7 @@ gulp.task('browserify:development', function() {
     return bundler.bundle()
         .on('end', logger(files))
         .pipe(source("taplytics.js"))
-      .pipe(buffer())
+        .pipe(buffer())
         .pipe(gulp.dest(config.destDirectory));
   }
 

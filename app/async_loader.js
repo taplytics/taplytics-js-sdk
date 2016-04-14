@@ -9,9 +9,13 @@
             Taplytics.funcs = [
                 "init",
                 "identify",
-                "page",
                 "track",
-                "reset"
+                "page",
+                "reset",
+                "propertiesLoaded",
+                "runningExperiments",
+                "variable",
+                "codeBlock"
             ];
 
             Taplytics.mock = function(f) {
@@ -43,5 +47,4 @@
             Taplytics.load();
         }
     }
-  
 }();

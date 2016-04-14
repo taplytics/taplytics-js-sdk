@@ -5,7 +5,7 @@ var logger = require('../lib/compileLogger');
 var uglify = require('gulp-uglify');
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
-var config   = require('../config');
+var config = require('../config');
 
 gulp.task('browserify:production', function() {
   var bundler;
@@ -15,7 +15,7 @@ gulp.task('browserify:production', function() {
   function bundle(files) {
     return bundler.bundle()
         .pipe(source("taplytics.min.js"))
-      .pipe(buffer())
+        .pipe(buffer())
         .pipe(uglify())
         .pipe(gulp.dest(config.destDirectory));
   }

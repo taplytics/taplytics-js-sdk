@@ -1,5 +1,5 @@
 var app = require('./app');
-var logger = require('./lib/logger');
+var log = require('./lib/logger');
 var config = require('../config');
 
 exports.Taplytics = window.Taplytics = module.exports = app;
@@ -7,7 +7,7 @@ exports.Taplytics = window.Taplytics = module.exports = app;
 // Launch functions from the app queue if there is one.
 // This queue is filled by the async loader and users.
 exports.flushAppQueue = function() {
-    logger.log("flushAppQueue tick", window._tlq, logger.LOUD);
+    log.log("flushAppQueue tick", window._tlq, log.LOUD);
 
     if (window._tlq && window._tlq instanceof Array) {
         var queue = window._tlq.slice();
@@ -31,7 +31,7 @@ exports.flushAppQueue = function() {
         }
 
         if (queue.length > 0) {
-            logger.log("flushAppQueue: " + queue.length, queue, logger.LOUD);
+            log.log("flushAppQueue: " + queue.length, queue, log.LOUD);
 
             for(var i = 0; i < queue.length; i++) {
                 var func = queue[i];
@@ -43,11 +43,11 @@ exports.flushAppQueue = function() {
                     try {
                         app[func_name].apply(app, func_args);
                     } catch (e) {
-                        logger.error("Attempted to call " + 
-                                     func_name + "(" + (func_args || []).join(',') + 
-                                     "); from the queue but failed!", e, logger.USER);
+                        log.error("Attempted to call " +
+                                     func_name + "(" + (func_args || []).join(',') +
+                                     "); from the queue but failed!", e, log.USER);
                         if (e && e.stack)
-                            logger.error(e.stack, null, logger.DEBUG);
+                            log.error(e.stack, null, log.DEBUG);
                     }
                 }
             }

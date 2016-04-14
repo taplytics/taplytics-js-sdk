@@ -1,4 +1,4 @@
-var logger = require('../lib/logger');
+var log = require('../lib/logger');
 var location = require('../lib/location');
 var session = require('../lib/session');
 
@@ -13,10 +13,10 @@ var sessionConfigOptions = {
 
 module.exports = function(category, name, attrs) {
     if (!this.isReady()) {
-        logger.error("track: you have to call Taplytics.init first.", null, logger.USER);
+        log.error("track: you have to call Taplytics.init first.", null, log.USER);
         return this;
     }
-    
+
     var cat_name = category;
     var view_name = name;
     var attributes = attrs;
@@ -40,12 +40,12 @@ module.exports = function(category, name, attrs) {
     if (session.get(sessionConfigOptions.previous_page_href)) {
         var opts = getPreviousPage();
 
-        this.api.events.pageClose(opts.category, 
+        this.api.events.pageClose(opts.category,
                              opts.name,
                              opts.href,
                              opts.title,
                              opts.location);
-        
+
         this.api.events.timeOnPage(opts.category,
                               opts.name,
                               opts.href,
@@ -75,7 +75,7 @@ function getPreviousPage() {
         view_date = new Date(view_date);
 
     return {
-        category: session.get(sessionConfigOptions.previous_page_category), 
+        category: session.get(sessionConfigOptions.previous_page_category),
         name: session.get(sessionConfigOptions.previous_page_name),
         href: session.get(sessionConfigOptions.previous_page_href),
         title: session.get(sessionConfigOptions.previous_page_title),

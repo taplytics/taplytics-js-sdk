@@ -1,4 +1,4 @@
-var logger = require('./logger');
+var log = require('./logger');
 
 var CookieJar = require('cookiejar').CookieJar;
 var Cookie = require('cookiejar').Cookie;
@@ -9,9 +9,6 @@ var accessInfo = new CookieAccess();
 exports.get = function(key) {
     var jar = getJar();
     var cookie = jar.getCookie(key, accessInfo);
-
-    var cookies = jar.getCookies(accessInfo);
-
     if (!cookie) return;
 
     return cookie.value;
@@ -25,10 +22,11 @@ exports.set = function(key, value, options) {
     options = options || {};
 
     var cookieToSet = keyValueToCookie(key, value, options.expires);
+    var cookieStr = cookieToSet.toString();
 
-    document.cookie = cookieToSet.toString();
+    document.cookie = cookieStr;
 
-    logger.log("Setting cookies to:", cookieToSet.toString(), logger.DEBUG);
+    log.log("Setting cookies to:", cookieStr, log.DEBUG);
 };
 
 exports.expire = function(key) {
@@ -50,7 +48,7 @@ function getJar() {
 
             while (cValue.charAt(0) == ' ') cValue = cValue.substring(1);
 
-            jar.setCookies(cValue, accessInfo);
+            jar.setCookies(cValue);
         }
     }
 

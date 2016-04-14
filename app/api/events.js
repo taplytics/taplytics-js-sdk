@@ -1,14 +1,13 @@
 var request = require('./base');
 var users = require('./users');
 var config = require('../../config');
-var logger = require('../lib/logger');
+var log = require('../lib/logger');
 var merge = require('../lib/merge');
 var location = require('../lib/location');
 var Queue = require('../lib/queue');
 var session = require('../lib/session');
 
 var events_path = 'events';
-
 var eventsQueue = new Queue();
 var eventTypes = {
     goal: 'goalAchieved',
@@ -62,7 +61,7 @@ exports.pageClose = function(category, name, href, title, location) {
         eventObject.data = merge(eventObject.data || {}, {
             _tl_view: location
         });
-    
+
     return eventsQueue.enqueue(eventObject);
 };
 
@@ -110,16 +109,17 @@ exports.post = function(events, callback) {
 
     request.post(events_path, params, payloadDatum, function(err, response) {
         if (!err)
-            logger.log("Taplytics::events.post: succesfully logged events.", response, logger.DEBUG);
+            log.log("Taplytics::events.post: succesfully logged events.", response, log.DEBUG);
         else
-            logger.error("Taplytics::events.post: failed to log events", err, logger.LOG);
+            log.error("Taplytics::events.post: failed to log events", err, log.LOG);
 
         return callback && callback(err, response);
     });
 };
 
+//
 // Internal functions
-
+//
 function defaultEventObject(type) {
     return {
         type: type,
@@ -134,9 +134,8 @@ function defaultEventObject(type) {
 }
 
 function flushQueue() {
-    logger.log("events.flushQueue: tick.", eventsQueue, logger.DEBUG);
-
-    if (eventsQueue.isEmpty())
+    log.log("events.flushQueue: tick.", eventsQueue, log.LOUD);
+    if (eventsQueue.isEmpty() || !session.hasLoadedData)
         return exports.scheduleTick();
 
     // Flush eventsQueue.
