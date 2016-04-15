@@ -24,7 +24,7 @@ Asynchronous variables take three parameters in its constructor:
 
 1. Variable Name (String)
 2. Default Value (String, Number, or Boolean)
-3. Updated Block
+3. Updated Function (Function)
 
 The type of the variable is defined by the type of the default value, and can be a `String`, `Number` or a `Boolean`.
 
@@ -32,6 +32,7 @@ For example, using a variable of type `Number`:
 
 ```javascript
 Taplytics.variable("JS Number", 1, function(value) {
+    // function called when experiment config has loaded and value has been set
     console.log("JS Number value: " + value);
 });
 ```
