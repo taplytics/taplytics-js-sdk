@@ -83,3 +83,7 @@ Taplytics.page("Product Listings", "Shirts", {
 ```
 
 Note that you can call the function by itself without any arguments as well. Read more about the `page` function [here](https://taplytics.com/docs/javascript-sdk/reference#page).
+
+### 5. Experiments
+
+To setup code experiments with the Taplytics JS SDK check out this [guide](https://taplytics.com/docs/javascript-sdk/experiment).
