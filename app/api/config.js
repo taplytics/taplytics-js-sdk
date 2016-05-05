@@ -6,7 +6,11 @@ var session = require('../lib/session');
 exports.get = function(next) {
     var sessionAttrs = session.getSessionAttributes();
     sessionAttrs.auid = session.getAppUserID();
-    if (sessionAttrs.prms) sessionAttrs.prms = JSON.stringify(sessionAttrs.prms);
+    if (sessionAttrs.prms)
+        sessionAttrs.prms = JSON.stringify(sessionAttrs.prms);
+
+    if (session.test_experiments)
+        sessionAttrs.uev = JSON.stringify(session.test_experiments);
 
     log.log("config_get", sessionAttrs, log.DEBUG);
     request.get("config", sessionAttrs, function(err, response) {

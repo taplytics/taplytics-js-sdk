@@ -22,6 +22,9 @@ module.exports = function(token, options) {
 
         if (options.env)
             this.env = options.env;
+
+        if (options.test_experiments)
+            session.test_experiments = options.test_experiments;
     }
 
     /* Initialization */

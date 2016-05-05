@@ -15,7 +15,7 @@ exports.obj = function() {
 
     config.functionFlushQueueTimeout = 500;
 
-    config.sdkVersion = "1.0";
+    config.sdkVersion = "1.0.1";
 
     return config;
 };

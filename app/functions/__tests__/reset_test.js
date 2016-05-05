@@ -1,7 +1,7 @@
 jest.dontMock('../reset');
 
 describe("Taplytics.reset - uninitialized app", function() {
-it("should error on if app is not initialized", function() {
+    it("should error on if app is not initialized", function() {
         var TaplyticsUninitialized = require('../../../test/helpers/uninitialized_app');
         var logger = require('../../lib/logger');
 
