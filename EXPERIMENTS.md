@@ -86,3 +86,16 @@ Taplytics.runningExperiments(function(expAndVars) {
 ```
 
 NOTE: The block can return asynchronously once Taplytics config has loaded. The block will return an Object with experiment names as the key values, and variation names as the values.
+
+## Testing Experiments
+
+To test/QA specific experiment and varation combinations use the `test_experiments` option with an Object containing keys of the experiment names, and values of variation names (or `baseline`).
+
+```javascript
+Taplytics.init("66ae76df942043c9948c737fdb7c3ccd", {
+    test_experiments: {
+        "JS experiment": "Variation 1",
+        "JS experiment 2": "baseline"
+    }
+});
+```
