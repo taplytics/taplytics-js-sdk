@@ -92,7 +92,7 @@ NOTE: The block can return asynchronously once Taplytics config has loaded. The 
 To test/QA specific experiment and varation combinations use the `test_experiments` option with an Object containing keys of the experiment names, and values of variation names (or `baseline`).
 
 ```javascript
-Taplytics.init("66ae76df942043c9948c737fdb7c3ccd", {
+Taplytics.init("API_KEY", {
     test_experiments: {
         "JS experiment": "Variation 1",
         "JS experiment 2": "baseline"
