@@ -27,8 +27,33 @@ TLVariable.prototype.getValueType = function(value) {
         return "Number";
     else if (typeof value === "boolean")
         return "Boolean";
+    else if (typeof value === "object")
+        return "JSON";
     else
         return null;
+};
+
+TLVariable.prototype.stringifyValue = function(value) {
+    if (this.defaultType === "JSON")
+        return JSON.stringify(value);
+    else
+        return value;
+};
+
+TLVariable.prototype.parseValue = function(value) {
+    if (this.defaultType === "JSON") {
+        if (typeof value === "object") return value;
+
+        try {
+            return JSON.parse(value);
+        } catch(ex) {
+            log.log("Error parsing JSON variable", value, log.LOG);
+        }
+        return nil;
+    }
+    else {
+        return value;
+    }
 };
 
 TLVariable.prototype.getValueFromConfig = function() {
@@ -47,14 +72,16 @@ TLVariable.prototype.getValueFromConfig = function() {
                 return log.error("Taplytics variable " + self.name + " default type does not match server: " + dynamicVar.variableType, null, log.LOG);
 
             // set variable value, call updated block with new value
-            self.value = dynamicVar.value;
-            if (self.updatedBlock)
-                self.updatedBlock(self.value);
+            self.value = self.parseValue(dynamicVar.value);
         }
         else {
             // upload new variable to server
             log.log("New Taplytics Variable: " + self.name, null, log.DEBUG);
             variableAPI.post(self);
+        }
+
+        if (self.updatedBlock) {
+            self.updatedBlock(self.value);
         }
     });
 };

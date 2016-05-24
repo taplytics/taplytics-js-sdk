@@ -15,11 +15,12 @@ module.exports = function(name, codeBlock) {
         if (dynamicVar) {
             // check that the defualt value type is the same as the server type
             if (dynamicVar.variableType !== "Code Block")
-                return log.error("Taplytics variable " + name + " default type does not match server: " + dynamicVar.variableType, null, log.LOG);
+                return log.error("Taplytics code block " + name + " default type does not match server: " + dynamicVar.variableType, null, log.LOG);
 
             // call codeBlock
-            if (codeBlock)
-                codeBlock(self.value);
+            if (codeBlock && dynamicVar.value) {
+                codeBlock();
+            }
         }
         else {
             // upload new variable to server

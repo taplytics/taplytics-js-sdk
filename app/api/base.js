@@ -7,7 +7,6 @@ var Qs = require('qs');
 var requestsQueue = new Queue();
 var isRequesting = false;
 
-
 var queuedPostRequest = queueRequest(postRequest);
 var queuedGetRequest = queueRequest(getRequest);
 var queuedDelRequest = queueRequest(deleteRequest);
@@ -24,6 +23,7 @@ exports.del  = queuedDelRequest;
 function getRequest(path, queryDatum, cb) {
     var params = getRequestQueryAndPayload(queryDatum);
     var url = assembleURL(path);
+    log.log("GET request: " + url, params, log.LOUD);
 
     request
         .get(url)
@@ -35,6 +35,7 @@ function getRequest(path, queryDatum, cb) {
 function postRequest(path, queryDatum, payloadDatum, cb) {
     var params = getRequestQueryAndPayload(queryDatum, payloadDatum);
     var url = assembleURL(path);
+    log.log("POST request: " + url, params, log.LOUD);
 
     request
         .post(url)
@@ -48,6 +49,7 @@ function postRequest(path, queryDatum, payloadDatum, cb) {
 function deleteRequest(path, queryDatum, payloadDatum, cb) {
     var params = getRequestQueryAndPayload(queryDatum, payloadDatum);
     var url = assembleURL(path);
+    log.log("DELETE request: " + url, params, log.LOUD);
 
     request
         .del(url)

@@ -9,7 +9,7 @@ exports.post = function(variable, next) {
         name: variable.name,
         createdAt: new Date(),
         variableType: variable.defaultType,
-        defaultVal: variable.defaultValue
+        defaultVal: variable.stringifyValue ? variable.stringifyValue(variable.defaultValue) : variable.defaultValue
     };
 
     log.log("variable_post", body, log.DEBUG);
