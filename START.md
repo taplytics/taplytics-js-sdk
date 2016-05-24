@@ -86,4 +86,4 @@ Note that you can call the function by itself without any arguments as well. Rea
 
 ### 5. Experiments
 
-To setup code experiments with the Taplytics JS SDK check out this [guide](https://taplytics.com/docs/javascript-sdk/experiment).
+To setup code experiments with the Taplytics JS SDK check out this [guide](https://taplytics.com/docs/javascript-sdk/experiments).
