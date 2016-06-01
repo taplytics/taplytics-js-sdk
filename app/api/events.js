@@ -10,6 +10,7 @@ var session = require('../lib/session');
 var events_path = 'events';
 var eventsQueue = new Queue();
 var eventTypes = {
+    active: 'appActive',
     goal: 'goalAchieved',
     pageView: 'viewAppeared',
     pageClose: 'viewDisappeared',
@@ -57,17 +58,17 @@ exports.pageClose = function(category, name, href, title, location) {
     eventObject.tvKey = title;
     eventObject.tvCl = href;
 
-    if (location)
+    if (location) {
         eventObject.data = merge(eventObject.data || {}, {
             _tl_view: location
         });
+    }
 
     return eventsQueue.enqueue(eventObject);
 };
 
 exports.pageView = function(category, name, attrs) {
     var eventObject = defaultEventObject(eventTypes.pageView);
-
     if (attrs)
         eventObject.data = merge(eventObject.data, attrs);
 
@@ -83,12 +84,15 @@ exports.goalAchieved = function(event_name, value, attrs) {
 
     if (attrs)
         eventObject.data = merge(eventObject.data, attrs);
-
     if (value)
         eventObject.val = value;
 
     eventObject.gn = event_name;
+    return eventsQueue.enqueue(eventObject);
+};
 
+exports.appActive = function() {
+    var eventObject = defaultEventObject(eventTypes.active);
     return eventsQueue.enqueue(eventObject);
 };
 
@@ -97,7 +101,6 @@ exports.post = function(events, callback) {
 
     var payloadDatum = function(even) {
         var sessionAttrs = {};
-
         sessionAttrs.sid = session.getSessionID();
 
         var payload = {

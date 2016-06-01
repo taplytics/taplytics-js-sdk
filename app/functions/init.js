@@ -53,6 +53,9 @@ module.exports = function(token, options) {
     // Initiate flushQueue:
     this.api.events.scheduleTick();
 
+    // track
+    this.api.events.appActive();
+
     return this;
 };
 
