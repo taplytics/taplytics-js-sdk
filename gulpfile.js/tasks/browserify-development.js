@@ -10,20 +10,16 @@ var buffer = require('vinyl-buffer');
 
 gulp.task('browserify:development', function() {
 
-  var bundler;
-
-  bundler = watchify(browserify(config.sourceDirectory + '/' + config.sourceEntry, _.merge(watchify.args, {
-    fullPaths: true
-  })));
+  var bundler = watchify(browserify(config.sourceDirectory + '/' + config.sourceEntry, _.merge(watchify.args, {fullPaths: true})));
 
   bundler.on('update', bundle);
 
   function bundle(files) {
     return bundler.bundle()
-        .on('end', logger(files))
-        .pipe(source("taplytics.js"))
-        .pipe(buffer())
-        .pipe(gulp.dest(config.destDirectory));
+                .on('end', logger(files))
+                .pipe(source("taplytics.js"))
+                .pipe(buffer())
+                .pipe(gulp.dest(config.destDirectory));
   }
 
   return bundle();

@@ -3,36 +3,56 @@ var log = require('./logger');
 var CookieJar = require('cookiejar').CookieJar;
 var Cookie = require('cookiejar').Cookie;
 var CookieAccess = require('cookiejar').CookieAccessInfo;
+var lscache = require('lscache');
 
 var accessInfo = new CookieAccess();
 
 exports.get = function(key) {
-    var jar = getJar();
-    var cookie = jar.getCookie(key, accessInfo);
-    if (!cookie) return;
+    if (getCookieSupport()) {
+        var jar = getJar();
+        var cookie = jar.getCookie(key, accessInfo);
+        if (!cookie) return;
 
-    return cookie.value;
+        return cookie.value;
+    }
+    else {
+        // Use local storage
+        var value = lscache.get(key);
+        log.log("Got local storage key: " + key + " with value: " + value, log.DEBUG);
+        return value;
+    }
 };
 
 exports.set = function(key, value, options) {
-    if (!key)
-        return;
+    if (!key) return;
 
-    value   = value || "";
-    options = options || {};
+    if (getCookieSupport()) {
+        value   = value || "";
+        options = options || {};
 
-    var cookieToSet = keyValueToCookie(key, value, options.expires);
-    var cookieStr = cookieToSet.toString();
+        var cookieToSet = keyValueToCookie(key, value, options.expires);
+        var cookieStr = cookieToSet.toString();
+        document.cookie = cookieStr;
 
-    document.cookie = cookieStr;
-
-    log.log("Setting cookies to:", cookieStr, log.DEBUG);
+        log.log("Setting cookies to:", cookieStr, log.DEBUG);
+    }
+    else {
+        var expiry = null;
+        if (options && options.expires) {
+            expiry = 30;
+        }
+        lscache.set(key, value, expiry);
+        log.log("Setting local storage key: " + key + " to value: " + value, log.DEBUG);
+    }
 };
 
 exports.expire = function(key) {
-    exports.set(key, "-", {
-        expires: new Date()
-    });
+    if (getCookieSupport()) {
+        exports.set(key, "-", {expires: new Date()});
+    } else {
+        log.log("Deleting local storage key: " + key, log.DEBUG);
+        lscache.remove(key);
+    }
 };
 
 
@@ -44,9 +64,10 @@ function getJar() {
         var cValue;
 
         for (var i = 0; i < ca.length; i++) {
-             cValue = ca[i];
-
-            while (cValue.charAt(0) == ' ') cValue = cValue.substring(1);
+            cValue = ca[i];
+            while (cValue.charAt(0) == ' ') {
+                cValue = cValue.substring(1);
+            }
 
             jar.setCookies(cValue);
         }
@@ -61,9 +82,29 @@ function keyValueToCookie(key, value, expiration) {
         cookieStr += "=" + value;
 
     var cookie = new Cookie(cookieStr);
-
     if (expiration)
         cookie.expiration_date = expiration;
 
     return cookie;
+}
+
+//
+// Find out what cookies are supported. Returns:
+// null - no cookies
+// false - only session cookies are allowed
+// true - session cookies and persistent cookies are allowed
+// (though the persistent cookies might not actually be persistent, if the user has set
+// them to expire on browser exit)
+//
+function getCookieSupport() {
+    var persist = true;
+    do {
+        var c = 'gCStest=' + Math.floor(Math.random() * 100000000);
+        document.cookie = persist ? c + ';expires=Tue, 01-Jan-2030 00:00:00 GMT' : c;
+        if (document.cookie.indexOf(c) !== -1) {
+            document.cookie = c + ';expires=Sat, 01-Jan-2000 00:00:00 GMT';
+            return persist;
+        }
+    } while (!(persist = !persist));
+    return null;
 }

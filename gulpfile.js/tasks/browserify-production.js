@@ -8,16 +8,14 @@ var buffer = require('vinyl-buffer');
 var config = require('../config');
 
 gulp.task('browserify:production', function() {
-  var bundler;
-
-  bundler = browserify(config.sourceDirectory + '/' + config.sourceEntry);
+  var bundler = browserify(config.sourceDirectory + '/' + config.sourceEntry);
 
   function bundle(files) {
     return bundler.bundle()
-        .pipe(source("taplytics.min.js"))
-        .pipe(buffer())
-        .pipe(uglify())
-        .pipe(gulp.dest(config.destDirectory));
+                .pipe(source("taplytics.min.js"))
+                .pipe(buffer())
+                .pipe(uglify())
+                .pipe(gulp.dest(config.destDirectory));
   }
 
   return bundle();
