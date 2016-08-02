@@ -52,6 +52,8 @@ exports.get = function (key, is_json) {
     else {
         var val = Cookies.get(cookieKey);
 
+        if (val && (typeof val === "object")) return val;
+        
         try {
             return JSON.parse(val);
         } catch (err) {
