@@ -3,6 +3,7 @@ var config = require('../../config');
 var log = require('../lib/logger');
 var Queue = require('../lib/queue');
 var Qs = require('qs');
+var Base64 = require('js-base64').Base64;
 
 var requestsQueue = new Queue();
 var isRequesting = false;
@@ -132,8 +133,10 @@ function getRequestQueryAndPayload(queryDatum, payloadDatum) {
 
     query.r_v = '1'; // request version
 
-    if (window.btoa && JSON.stringify)
-        payload = window.btoa(JSON.stringify(payload));
+    // Replaced btoa with Base64. window.btoa does not support UTF8 chars
+    if(Base64 && Base64.encode && JSON && JSON.stringify) {
+        payload = Base64.encode(JSON.stringify(payload))
+    }
     else
         query.r_v = '0'; // No btoa support, revert to normal JSON
 

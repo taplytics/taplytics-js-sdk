@@ -1,6 +1,6 @@
 {
   "name": "taplytics-js",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Taplytics JS SDK",
   "main": "app/index.js",
   "repository": {
@@ -15,6 +15,7 @@
   "homepage": "https://github.com/taplytics/Taplytics-js",
   "dependencies": {
     "cookiejar": "^2.0.1",
+    "js-base64": "^2.1.9",
     "qs": "^2.4.1",
     "superagent": "^1.1.0",
     "lscache": "git@github.com:taplytics/lscache.git#hotfix/remove-anonymous-amd-support",
