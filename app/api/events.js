@@ -11,6 +11,7 @@ var events_path = 'events';
 var eventsQueue = new Queue();
 var eventTypes = {
     active: 'appActive',
+    config: 'tlClientConfig',
     goal: 'goalAchieved',
     pageView: 'viewAppeared',
     pageClose: 'viewDisappeared',
@@ -96,9 +97,17 @@ exports.appActive = function() {
     return eventsQueue.enqueue(eventObject);
 };
 
-exports.post = function(events, callback) {
-    var params = {};
+exports.clientConfig = function(time) {
+    if (!time) return;
+    var event = defaultEventObject(eventTypes.config);
+    var now = new Date();
+    event.value = (now.getTime() - time.getTime()) / 1000.0;
+    return eventsQueue.enqueue(event);
+};
 
+exports.post = function(events, callback) {
+    var time = new Date();
+    var params = {};
     var payloadDatum = function(even) {
         var sessionAttrs = {};
         sessionAttrs.sid = session.getSessionID();
@@ -112,7 +121,7 @@ exports.post = function(events, callback) {
 
     request.post(events_path, params, payloadDatum, function(err, response) {
         if (!err)
-            log.log("Taplytics::events.post: succesfully logged events.", response, log.DEBUG);
+            log.time("Taplytics::events.post: succesfully logged events.", response, time, log.DEBUG);
         else
             log.error("Taplytics::events.post: failed to log events", err, log.LOG);
 

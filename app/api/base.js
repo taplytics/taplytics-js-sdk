@@ -19,6 +19,29 @@ exports.post = queuedPostRequest;
 exports.del  = queuedDelRequest;
 
 //
+// Timeout
+//
+var minTimeout = 1000; // 1 seconds
+var maxTimeout = 30 * 1000; // 30 seconds
+var timeout = 4000; // default 4 second timeout
+
+exports.setTimeout = function(timeoutSec) {
+    var userTimeout = timeoutSec * 1000;
+    if (userTimeout > maxTimeout) {
+        log.error("Timeout is larger then max timeout! timeout: " + timeoutSec + "s, max timeout: " + (maxTimeout / 1000) + "s. Using max timeout value.", null, log.USER);
+        timeout = maxTimeout;
+    }
+    else if (userTimeout < minTimeout) {
+        log.error("Timeout is smaller then the min timeout! timeout: " + timeoutSec + "s, min timeout: " + (minTimeout / 1000) + "s. Using min timeout value.", null, log.USER);
+        timeout = minTimeout;
+    }
+    else {
+        log.log("Set timeout: " + timeoutSec + "s", null, log.LOUD);
+        timeout = userTimeout;
+    }
+};
+
+//
 // Requests
 //
 function getRequest(path, queryDatum, cb) {
@@ -29,7 +52,7 @@ function getRequest(path, queryDatum, cb) {
     request
         .get(url)
         .query(params.query)
-        //.set('Access-Control-Allow-Origin', '*')
+        .timeout(timeout)
         .end(callbackWrapper(url, cb));
 }
 
@@ -42,7 +65,6 @@ function postRequest(path, queryDatum, payloadDatum, cb) {
         .post(url)
         .query(params.query)
         .set('Content-Type', 'application/base64+json')
-        //.set('Access-Control-Allow-Origin', '*')
         .send(params.payload)
         .end(callbackWrapper(url, cb));
 }
@@ -56,6 +78,7 @@ function deleteRequest(path, queryDatum, payloadDatum, cb) {
         .del(url)
         .query(params.query)
         .set('Content-Type', 'application/base64+json')
+        .timeout(timeout)
         .send(params.payload)
         .end(callbackWrapper(url, cb));
 }

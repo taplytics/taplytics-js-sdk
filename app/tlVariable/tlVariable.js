@@ -62,10 +62,9 @@ TLVariable.prototype.getValueFromConfig = function() {
     // wait for session config data to load from our servers
     session.sessionConfigPromise(function() {
         var config = session.config;
-        if (!config) return;
 
         // get dynamicVar from config by name
-        var dynamicVar = config.dynamicVars ? config.dynamicVars[self.name] : null;
+        var dynamicVar = (config && config.dynamicVars) ? config.dynamicVars[self.name] : null;
         if (dynamicVar) {
             // check that the defualt value type is the same as the server type
             if (dynamicVar.variableType !== self.defaultType)
@@ -74,7 +73,7 @@ TLVariable.prototype.getValueFromConfig = function() {
             // set variable value, call updated block with new value
             self.value = self.parseValue(dynamicVar.value);
         }
-        else {
+        else if (config) {
             // upload new variable to server
             log.log("New Taplytics Variable: " + self.name, null, log.DEBUG);
             variableAPI.post(self);

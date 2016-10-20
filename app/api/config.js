@@ -1,9 +1,11 @@
 var request = require('./base');
 var log = require('../lib/logger');
 var session = require('../lib/session');
+var events = require('./events');
 
 // switch to get
 exports.get = function(next) {
+    var time = new Date();
     var sessionAttrs = session.getSessionAttributes();
     sessionAttrs.auid = session.getAppUserID();
     if (sessionAttrs.prms)
@@ -22,7 +24,8 @@ exports.get = function(next) {
             var data = response.body;
             session.saveSessionConfig(data);
             if (data) {
-                log.log("config.get: successfully got session config data", response, log.DEBUG);
+                events.clientConfig(time);
+                log.time("config.get: successfully got session config data", response, time, log.DEBUG);
             } else {
                 log.error("No config data in response", null, log.DEBUG);
             }

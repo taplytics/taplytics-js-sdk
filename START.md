@@ -87,3 +87,28 @@ Note that you can call the function by itself without any arguments as well. Rea
 ### 5. Experiments
 
 To setup code experiments with the Taplytics JS SDK check out this [guide](https://taplytics.com/docs/javascript-sdk/experiments).
+
+---
+
+### Start Options
+
+Start options allow you to control how certain SDK features, such as the default request timeout.
+
+|Start Option |Type |Description |
+|---        |---	        |---          |
+| timeout | Number | Set the request timeout in seconds. If requests timeout variables will use the default value, but no events will be saved. The default timeout is 4 seconds. |
+| test_experiments | Object | Set an Object containing pairs of experiment/variation combinations as key/value pairs to test with. [Docs](https://github.com/taplytics/Taplytics-js/blob/master/EXPERIMENTS.md#testing-experiments)|
+
+Example: 
+
+```javascript
+Taplytics.init("API_KEY", {
+    timeout: 10,
+    test_experiments: {
+        "JS experiment": "Variation 1",
+        "JS experiment 2": "baseline"
+    }
+});
+```
+
+

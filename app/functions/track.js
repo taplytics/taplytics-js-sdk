@@ -1,5 +1,6 @@
 var log = require('../lib/logger');
 var session = require('../lib/session');
+var tools = require('../lib/tools');
 
 module.exports = function(event_name, value, attrs) {
     if (!this.isReady()) {
@@ -14,12 +15,12 @@ module.exports = function(event_name, value, attrs) {
     var val = value;
     var attributes = attrs;
 
-    if (isObjectLike(value) && !attrs) { // for when function is used as (event_name, attrs)
+    if (tools.isObjectLike(value) && !attrs) { // for when function is used as (event_name, attrs)
         val = undefined;
         attributes = value;
     }
 
-    if (val && !isNumber(val)) {
+    if (val && !tools.isNumber(val)) {
         log.error("track: if you're passing a value, it has to be a number.", null, log.USER);
         return false;
     }
@@ -30,15 +31,3 @@ module.exports = function(event_name, value, attrs) {
 
     return this;
 };
-
-
-function isNumber(value) { // https://github.com/lodash/lodash/blob/3.8.0/lodash.src.js#L9098
-    var numberTag = '[object Number]';
-    var objToString = Object.prototype.toString;
-
-    return typeof value == 'number' || (isObjectLike(value) && objToString.call(value) == numberTag);
-}
-
-function isObjectLike(value) { // https://github.com/lodash/lodash/blob/3.8.0/lodash.src.js#L569
-    return !!value && typeof value == 'object';
-}

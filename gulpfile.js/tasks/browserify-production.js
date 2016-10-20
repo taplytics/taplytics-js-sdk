@@ -14,7 +14,10 @@ gulp.task('browserify:production', function() {
     return bundler.bundle()
                 .pipe(source("taplytics.min.js"))
                 .pipe(buffer())
-                .pipe(uglify())
+                .pipe(uglify().on('error', function(err) {
+                    console.log("uglify error: ");
+                    console.dir(err);
+                }))
                 .pipe(gulp.dest(config.destDirectory));
   }
 

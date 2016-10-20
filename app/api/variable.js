@@ -5,6 +5,7 @@ var session = require('../lib/session');
 exports.post = function(variable, next) {
     if (!variable) return log.error("No new variable to post to server", null, log.DEBUG);
 
+    var time = new Date();
     var body = {
         name: variable.name,
         createdAt: new Date(),
@@ -20,7 +21,7 @@ exports.post = function(variable, next) {
         else {
             var newVariable = response.body;
             if (newVariable && newVariable.name) {
-                log.log("Users.post: successfully created new variable.", newVariable, log.DEBUG);
+                log.time("Users.post: successfully created new variable.", newVariable, time, log.DEBUG);
             }
         }
         return next && next(err);

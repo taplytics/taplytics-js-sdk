@@ -12,15 +12,25 @@ exports.USER = 0;
 exports.setPriorityLevel = function(priority) {
     priority_level = priority;
 };
-  
+
 exports.log = function(desc, obj, level) {
     if (level !== undefined && !isLoggerEnabled(level))
         return;
-    
+
     console.log("[Taplytics]", desc);
-    
-    if (obj)
-        console.dir(obj);
+    if (obj) console.dir(obj);
+};
+
+exports.time = function(desc, obj, time, level) {
+    if (level !== undefined && !isLoggerEnabled(level))
+        return;
+
+    if (time) {
+        var now = new Date();
+        var ms = now.getTime() - time.getTime();
+        desc = desc + ", time: " + ms + "ms";
+    }
+    exports.log(desc, obj, level);
 };
 
 exports.error = function(desc, err, level) {
@@ -28,7 +38,5 @@ exports.error = function(desc, err, level) {
         return;
 
     console.error("[Taplytics]", desc);
-    
-    if (err)
-        console.dir(err);
+    if (err) console.dir(err);
 };

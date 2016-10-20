@@ -43,6 +43,7 @@ exports.post = function(user_attrs, failure_message, next) {
         if (!appUser) appUser = {};
         appUser.auid = session.getAppUserID();
 
+        var time = new Date();
         var body = {
             session: sessionAttrs,
             app_user: appUser
@@ -57,7 +58,7 @@ exports.post = function(user_attrs, failure_message, next) {
             else {
                 var data = response.body;
                 if (data) {
-                    log.log("Users.post: successfully created/updated user.", response, log.DEBUG);
+                    log.time("Users.post: successfully created/updated user.", response, time, log.DEBUG);
                     session.setAppUserID(data.app_user_id);
                     session.setSessionID(data.session_id);
                     session.tick();

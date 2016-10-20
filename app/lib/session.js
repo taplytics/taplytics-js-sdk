@@ -53,7 +53,7 @@ exports.get = function (key, is_json) {
         var val = Cookies.get(cookieKey);
 
         if (val && (typeof val === "object")) return val;
-        
+
         try {
             return JSON.parse(val);
         } catch (err) {
@@ -217,7 +217,7 @@ exports.saveSessionConfig = function(config) {
     var i = 0;
     for (var i = 0; i < exports.sessionConfigPromises.length; i++) {
         var promise = exports.sessionConfigPromises[i];
-        if (promise) promise();
+        if (promise) promise(!!config);
     }
     exports.sessionConfigPromises = [];
 };
@@ -226,7 +226,7 @@ exports.sessionConfigPromises = [];
 exports.sessionConfigPromise = function(callback) {
     if (!callback) return;
     if (exports.hasLoadedData && exports.data)
-        return callback();
+        return callback(true);
     else
         exports.sessionConfigPromises.push(callback);
 };
