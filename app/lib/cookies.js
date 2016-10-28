@@ -1,10 +1,9 @@
 var log = require('./logger');
 
+var lscache = require('lscache');
 var CookieJar = require('cookiejar').CookieJar;
 var Cookie = require('cookiejar').Cookie;
 var CookieAccess = require('cookiejar').CookieAccessInfo;
-var lscache = require('lscache');
-
 var accessInfo = new CookieAccess();
 
 exports.get = function(key) {
@@ -30,9 +29,11 @@ exports.set = function(key, value, options) {
         value   = value || "";
         options = options || {};
 
+        var cookieJar = getJar();
         var cookieToSet = keyValueToCookie(key, value, options.expires);
         var cookieStr = cookieToSet.toString();
         document.cookie = cookieStr;
+        cookieJar.setCookie(cookieStr);
 
         log.log("Setting cookies to:", cookieStr, log.DEBUG);
     }
@@ -56,10 +57,17 @@ exports.expire = function(key) {
 };
 
 
+var staticJar;
 function getJar() {
-    var jar = new CookieJar();
+    if (!staticJar) {
+        staticJar = new CookieJar();
+        updateJar();
+    }
+    return staticJar;
+}
 
-    if (document.cookie && document.cookie.length) {
+function updateJar() {
+    if (staticJar && document.cookie && document.cookie.length) {
         var ca = document.cookie.split(';');
         var cValue;
 
@@ -69,11 +77,9 @@ function getJar() {
                 cValue = cValue.substring(1);
             }
 
-            jar.setCookies(cValue);
+            staticJar.setCookies(cValue);
         }
     }
-
-    return jar;
 }
 
 function keyValueToCookie(key, value, expiration) {
@@ -96,15 +102,20 @@ function keyValueToCookie(key, value, expiration) {
 // (though the persistent cookies might not actually be persistent, if the user has set
 // them to expire on browser exit)
 //
+var cookieSupport = undefined;
 function getCookieSupport() {
+    if (cookieSupport !== undefined) return cookieSupport;
+
     var persist = true;
     do {
         var c = 'gCStest=' + Math.floor(Math.random() * 100000000);
         document.cookie = persist ? c + ';expires=Tue, 01-Jan-2030 00:00:00 GMT' : c;
         if (document.cookie.indexOf(c) !== -1) {
             document.cookie = c + ';expires=Sat, 01-Jan-2000 00:00:00 GMT';
+            cookieSupport = persist;
             return persist;
         }
     } while (!(persist = !persist));
+    cookieSupport = null;
     return null;
 }

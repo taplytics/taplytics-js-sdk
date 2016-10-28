@@ -3,7 +3,6 @@ var config = require('../../config');
 var log = require('../lib/logger');
 var Queue = require('../lib/queue');
 var Qs = require('qs');
-var Base64 = require('js-base64').Base64;
 
 var requestsQueue = new Queue();
 var isRequesting = false;
@@ -64,7 +63,7 @@ function postRequest(path, queryDatum, payloadDatum, cb) {
     request
         .post(url)
         .query(params.query)
-        .set('Content-Type', 'application/base64+json')
+        .set('Content-Type', 'application/json')
         .send(params.payload)
         .end(callbackWrapper(url, cb));
 }
@@ -77,7 +76,7 @@ function deleteRequest(path, queryDatum, payloadDatum, cb) {
     request
         .del(url)
         .query(params.query)
-        .set('Content-Type', 'application/base64+json')
+        .set('Content-Type', 'application/json')
         .timeout(timeout)
         .send(params.payload)
         .end(callbackWrapper(url, cb));
@@ -154,14 +153,7 @@ function getRequestQueryAndPayload(queryDatum, payloadDatum) {
     else
         payload = payloadDatum;
 
-    query.r_v = '1'; // request version
-
-    // Replaced btoa with Base64. window.btoa does not support UTF8 chars
-    if(Base64 && Base64.encode && JSON && JSON.stringify) {
-        payload = Base64.encode(JSON.stringify(payload))
-    }
-    else
-        query.r_v = '0'; // No btoa support, revert to normal JSON
+    query.r_v = '0'; // No btoa support, revert to normal JSON
 
     if (exports.publicToken)
         query.public_token = exports.publicToken;
