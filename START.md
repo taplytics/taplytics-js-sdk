@@ -29,6 +29,10 @@ Replace `JS_SDK_TOKEN` with your JS SDK token. You can find your token in the se
 
 Note that this **will send a page view event** to us. If you want to disable the automatic page view event when Taplytics.js is initialized, check the documentation on the `init` function [here](https://taplytics.com/docs/javascript-sdk/reference#init) and about calling the `page` function manually [here](https://taplytics.com/docs/javascript-sdk/reference#page).
 
+#### Pin SDK version
+
+If you would like to pin the JS SDK to a specific SDK version change the `//cdn.taplytics.com/taplytics.min.js` url in the snipit above using the following url where `sdk_version` is the version you would like to pin to: `//cdn.taplytics.com/jssdk/sdk_version/taplytics.min.js`
+
 ### 2. Identify Users
 
 Using the `identify` function, you can let us know who the current user is on the page. It can also be used to let us know about any [user attributes](https://taplytics.com/docs/user-attributes-setup) that can be used for segmentation in our system.
