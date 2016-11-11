@@ -206,8 +206,8 @@ exports.getSessionAttributes = function(attr) {
 
 exports.saveSessionConfig = function(config) {
     exports.config = config;
+    exports.hasLoadedData = true;
     if (config) {
-        exports.hasLoadedData = true;
         exports.setAppUserID(config.app_user_id);
         exports.setSessionID(config.session_id);
         exports.tick();
