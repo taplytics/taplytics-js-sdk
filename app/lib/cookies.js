@@ -6,8 +6,8 @@ var Cookie = require('cookiejar').Cookie;
 var CookieAccess = require('cookiejar').CookieAccessInfo;
 var accessInfo = new CookieAccess();
 
-exports.get = function(key) {
-    if (getCookieSupport()) {
+exports.get = function(key, useLS) {
+    if (getCookieSupport() && !useLS) {
         var jar = getJar();
         var cookie = jar.getCookie(key, accessInfo);
         if (!cookie) return;
@@ -17,15 +17,15 @@ exports.get = function(key) {
     else {
         // Use local storage
         var value = lscache.get(key);
-        log.log("Got local storage key: " + key + " with value: " + value, log.DEBUG);
+        log.log("Got local storage key: " + key + " with value: " + value, log.LOUD);
         return value;
     }
 };
 
-exports.set = function(key, value, options) {
+exports.set = function(key, value, options, useLS) {
     if (!key) return;
 
-    if (getCookieSupport()) {
+    if (getCookieSupport() && !useLS) {
         value   = value || "";
         options = options || {};
 
@@ -35,7 +35,7 @@ exports.set = function(key, value, options) {
         document.cookie = cookieStr;
         cookieJar.setCookie(cookieStr);
 
-        log.log("Setting cookies to:", cookieStr, log.DEBUG);
+        log.log("Setting cookies to:", cookieStr, log.LOUD);
     }
     else {
         var expiry = null;
@@ -43,15 +43,16 @@ exports.set = function(key, value, options) {
             expiry = 30;
         }
         lscache.set(key, value, expiry);
-        log.log("Setting local storage key: " + key + " to value: " + value, log.DEBUG);
+        log.log("Setting local storage key: " + key + " to value: " + value, log.LOUD);
     }
 };
 
-exports.expire = function(key) {
-    if (getCookieSupport()) {
+exports.expire = function(key, useLS) {
+    if (getCookieSupport() && !useLS) {
         exports.set(key, "-", {expires: new Date()});
-    } else {
-        log.log("Deleting local storage key: " + key, log.DEBUG);
+    }
+    else {
+        log.log("Deleting local storage key: " + key, log.LOUD);
         lscache.remove(key);
     }
 };
@@ -83,9 +84,9 @@ function updateJar() {
 }
 
 function keyValueToCookie(key, value, expiration) {
-    var cookieStr = key;
-    if (value)
-        cookieStr += "=" + value;
+    var cookieStr = key + "=" + value;
+    // if (value)
+    //     cookieStr += "=" + value;
 
     var cookie = new Cookie(cookieStr);
     if (expiration)

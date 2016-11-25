@@ -7,15 +7,12 @@ var Qs = require('qs');
 var requestsQueue = new Queue();
 var isRequesting = false;
 
-var queuedPostRequest = queueRequest(postRequest);
-var queuedGetRequest = queueRequest(getRequest);
-var queuedDelRequest = queueRequest(deleteRequest);
-
 exports.publicToken = null;
 exports.setPublicToken = setPublicToken;
-exports.get  = queuedGetRequest;
-exports.post = queuedPostRequest;
-exports.del  = queuedDelRequest;
+exports.get  = queueRequest(getRequest);
+exports.getJSON = queueRequest(getJSONRequest)
+exports.post = queueRequest(postRequest);
+exports.del  = queueRequest(deleteRequest);
 
 //
 // Timeout
@@ -48,9 +45,17 @@ function getRequest(path, queryDatum, cb) {
     var url = assembleURL(path);
     log.log("GET request: " + url, params, log.LOUD);
 
-    request
-        .get(url)
+    request.get(url)
         .query(params.query)
+        .timeout(timeout)
+        .end(callbackWrapper(url, cb));
+}
+
+function getJSONRequest(path, cb) {
+    var url = assembleCDNURL(path);
+    log.log("GET JSON file request: " + url, null, log.LOUD);
+
+    request.get(url)
         .timeout(timeout)
         .end(callbackWrapper(url, cb));
 }
@@ -60,8 +65,7 @@ function postRequest(path, queryDatum, payloadDatum, cb) {
     var url = assembleURL(path);
     log.log("POST request: " + url, params, log.LOUD);
 
-    request
-        .post(url)
+    request.post(url)
         .query(params.query)
         .set('Content-Type', 'application/json')
         .send(params.payload)
@@ -73,8 +77,7 @@ function deleteRequest(path, queryDatum, payloadDatum, cb) {
     var url = assembleURL(path);
     log.log("DELETE request: " + url, params, log.LOUD);
 
-    request
-        .del(url)
+    request.del(url)
         .query(params.query)
         .set('Content-Type', 'application/json')
         .timeout(timeout)
@@ -133,6 +136,10 @@ function assembleURL(path, query) {
     return config.obj().baseAPI + (path || '') + queryString(query);
 }
 
+function assembleCDNURL(path) {
+    return config.obj().cdnAPI + (path || '');
+}
+
 function queryString(query) {
     if (!query) return '';
 
@@ -145,12 +152,12 @@ function getRequestQueryAndPayload(queryDatum, payloadDatum) {
 
     if (queryDatum && typeof queryDatum == "function")
         query = queryDatum();
-    else
+    else if (queryDatum)
         query = queryDatum;
 
     if (payloadDatum && typeof payloadDatum == "function")
         payload = payloadDatum();
-    else
+    else if (payloadDatum)
         payload = payloadDatum;
 
     query.r_v = '0'; // No btoa support, revert to normal JSON

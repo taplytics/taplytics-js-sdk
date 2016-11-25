@@ -3,7 +3,7 @@ function Queue() {
     var queue  = [];
 
     this.length = function() {
-        return queue.length
+        return queue.length;
     };
 
     this.isEmpty = function() {
@@ -30,9 +30,7 @@ function Queue() {
     this.dequeue = function() {
         if (queue.length == 0) return undefined;
 
-        var item = queue.shift();
-
-        return item;
+        return queue.shift();
     };
 
     this.flush = function() {
@@ -45,6 +43,5 @@ function Queue() {
         return (queue.length > 0 ? queue[0] : undefined);
     };
 }
-
 
 module.exports = Queue;

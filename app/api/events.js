@@ -6,12 +6,15 @@ var merge = require('../lib/merge');
 var location = require('../lib/location');
 var Queue = require('../lib/queue');
 var session = require('../lib/session');
+var cookies = require('../lib/cookies');
 
 var events_path = 'events';
 var eventsQueue = new Queue();
 var eventTypes = {
     active: 'appActive',
+    terminate: 'appTerminate',
     config: 'tlClientConfig',
+    fastConfig: 'tlFastModeConfig',
     goal: 'goalAchieved',
     pageView: 'viewAppeared',
     pageClose: 'viewDisappeared',
@@ -20,16 +23,24 @@ var eventTypes = {
 
 exports.types = eventTypes;
 
+exports.watchLifecycleEvents = function() {
+    exports.appActive();
+
+    var flushQueueFunc = flushQueue.bind(this);
+    window.addEventListener('unload', function() {
+        log.log("Window on unload", null, log.DEBUG);
+        exports.appTerminate();
+        saveQueueToLocalStorage();
+    });
+};
+
 exports.timeOnPage = function(category, name, href, title, location, startDate) {
     var eventObject = defaultEventObject(eventTypes.timeOnPage);
 
     if (startDate && startDate.getTime) {
         var nowTime = (new Date()).getTime();
         var startTime = startDate.getTime();
-
-        var timePast = (nowTime - startTime) / 1000;
-
-        eventObject.val = timePast;
+        eventObject.val = (nowTime - startTime) / 1000;;
     }
 
     eventObject.vKey = name;
@@ -37,10 +48,9 @@ exports.timeOnPage = function(category, name, href, title, location, startDate) 
     eventObject.tvKey = title;
     eventObject.tvCl = href;
 
-    if (location)
-        eventObject.data = merge(eventObject.data || {}, {
-            _tl_view: location
-        });
+    if (location) {
+        eventObject.data = merge(eventObject.data || {}, {_tl_view: location});
+    }
 
     return eventsQueue.enqueue(eventObject);
 };
@@ -60,9 +70,7 @@ exports.pageClose = function(category, name, href, title, location) {
     eventObject.tvCl = href;
 
     if (location) {
-        eventObject.data = merge(eventObject.data || {}, {
-            _tl_view: location
-        });
+        eventObject.data = merge(eventObject.data || {}, {_tl_view: location});
     }
 
     return eventsQueue.enqueue(eventObject);
@@ -70,8 +78,9 @@ exports.pageClose = function(category, name, href, title, location) {
 
 exports.pageView = function(category, name, attrs) {
     var eventObject = defaultEventObject(eventTypes.pageView);
-    if (attrs)
+    if (attrs) {
         eventObject.data = merge(eventObject.data, attrs);
+    }
 
     eventObject.val = (new Date()).toISOString();
     eventObject.vKey = name;
@@ -93,16 +102,27 @@ exports.goalAchieved = function(event_name, value, attrs) {
 };
 
 exports.appActive = function() {
-    var eventObject = defaultEventObject(eventTypes.active);
-    return eventsQueue.enqueue(eventObject);
+    return eventsQueue.enqueue(defaultEventObject(eventTypes.active));
 };
+
+exports.appTerminate = function() {
+    return eventsQueue.enqueue(defaultEventObject(eventTypes.terminate))
+};
+
+function logTimeEvent(event, time) {
+    var now = new Date();
+    event.val = (now.getTime() - time.getTime()) / 1000.0;
+    return eventsQueue.enqueue(event);
+}
 
 exports.clientConfig = function(time) {
     if (!time) return;
-    var event = defaultEventObject(eventTypes.config);
-    var now = new Date();
-    event.value = (now.getTime() - time.getTime()) / 1000.0;
-    return eventsQueue.enqueue(event);
+    return logTimeEvent(defaultEventObject(eventTypes.config), time);
+};
+
+exports.fastModeConfig = function(time) {
+    if (!time) return;
+    return logTimeEvent(defaultEventObject(eventTypes.fastConfig), time);
 };
 
 exports.post = function(events, callback) {
@@ -111,12 +131,10 @@ exports.post = function(events, callback) {
     var payloadDatum = function(even) {
         var sessionAttrs = {};
         sessionAttrs.sid = session.getSessionID();
-
-        var payload = {
+        return {
             session: sessionAttrs,
             events: events
         };
-        return payload;
     };
 
     request.post(events_path, params, payloadDatum, function(err, response) {
@@ -153,6 +171,12 @@ function flushQueue() {
     // Flush eventsQueue.
     var events = eventsQueue.flush();
     var sessionID = session.getSessionID();
+    var lsEvents = cookies.get(eventsQueueKey, true);
+    if (lsEvents && lsEvents.length) {
+        log.log("Add " + lsEvents.length + " events from local storage cache", null, log.DEBUG);
+        events = events.concat(lsEvents);
+        cookies.expire(eventsQueueKey, true);
+    }
 
     // Queue up a session request if we don't have a session ID.
     if (!sessionID)
@@ -165,4 +189,12 @@ function flushQueue() {
 
         exports.scheduleTick();
     });
+}
+
+var eventsQueueKey = "_tl_eventsQueue";
+function saveQueueToLocalStorage() {
+    if (eventsQueue.isEmpty() || !session.hasLoadedData) return;
+    var events = eventsQueue.flush();
+    log.log("save " + events.length + " events to local storage", eventsQueue, log.DEBUG);
+    cookies.set(eventsQueueKey, events, null, true);
 }

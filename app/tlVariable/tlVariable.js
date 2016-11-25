@@ -60,7 +60,7 @@ TLVariable.prototype.getValueFromConfig = function() {
     var self = this;
 
     // wait for session config data to load from our servers
-    session.sessionConfigPromise(function() {
+    session.configPromise(function() {
         var config = session.config;
 
         // get dynamicVar from config by name

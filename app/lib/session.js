@@ -11,6 +11,7 @@ var cookieConfig = {
     // Correspond to models on our system:
     sessionID: '_tl_sid',
     appUserID: '_tl_auid',
+    cachedConfig: '_tl_config',
     sessionOptions: function (sessionID, key) {
         if (!sessionID || !key)
             return null;
@@ -20,7 +21,7 @@ var cookieConfig = {
 };
 
 // Session Data
-exports.data = {};
+exports.config = null;
 // if the session has loaded data from our servers
 exports.hasLoadedData = false;
 
@@ -36,22 +37,19 @@ exports.start = function () {
 
 // Sets a session variable (only accessible during this session)
 exports.get = function (key, is_json) {
-    if (!key)
-        return undefined;
+    if (!key) return undefined;
 
     exports.tick();
 
     var sessionID = exports.getCookieSessionID();
     var cookieKey = cookieConfig.sessionOptions(sessionID, key);
-    if (!cookieKey)
-        return undefined;
+    if (!cookieKey) return undefined;
 
     if (!is_json || !(JSON && JSON.parse)) {
         return Cookies.get(cookieKey);
     }
     else {
         var val = Cookies.get(cookieKey);
-
         if (val && (typeof val === "object")) return val;
 
         try {
@@ -63,12 +61,12 @@ exports.get = function (key, is_json) {
     }
 };
 
-exports.tick = function () {
+exports.tick = function() {
     exports.updateCookieSession(); // Make sure we reset the expiration
     return exports;
 };
 
-exports.set = function (key, value, is_json) {
+exports.set = function(key, value, is_json) {
     if (!key || value === undefined || (("" + value).length === 0))
         return false;
 
@@ -114,7 +112,7 @@ exports.updateCookieSession = function() {
     var expirationDate = dateAdd(new Date(), 'minute', 30); // 30 minute expiration
 
     Cookies.set(cookieConfig.cookieSessionID, cookieSessionID, {expires: expirationDate});
-    log.log("Set cookieSessionID to: " + cookieSessionID, {expires: expirationDate}, log.DEBUG);
+    log.log("Set cookieSessionID to: " + cookieSessionID, {expires: expirationDate}, log.LOUD);
 
     return exports;
 };
@@ -130,8 +128,20 @@ exports.setSessionUUID = function() {
     return exports;
 };
 
+exports.setSessionID = function(sessionID) {
+    Cookies.set(cookieConfig.sessionID, sessionID);
+    log.log("Set sessionID to: " + sessionID, null, log.DEBUG);
+    return exports;
+};
+
 exports.deleteSessionID = function() {
     Cookies.expire(cookieConfig.sessionID);
+    return exports;
+};
+
+exports.setAppUserID = function(appUserID) {
+    Cookies.set(cookieConfig.appUserID, appUserID);
+    log.log("Set appUserID to: " + appUserID, null, log.DEBUG);
     return exports;
 };
 
@@ -140,15 +150,17 @@ exports.deleteAppUserID = function() {
     return exports;
 };
 
-exports.setSessionID = function(sessionID) {
-    Cookies.set(cookieConfig.sessionID, sessionID);
-    log.log("Set sessionID to: " + sessionID, null, log.DEBUG);
-    return exports;
-};
-
-exports.setAppUserID = function(appUserID) {
-    Cookies.set(cookieConfig.appUserID, appUserID);
-    log.log("Set appUserID to: " + appUserID, null, log.DEBUG);
+exports.setCachedConfig = function(config) {
+    var jsonStr;
+    try {
+        jsonStr = JSON.stringify({
+            expVarsNames: config.expVarsNames,
+            dynamicVars: config.dynamicVars
+        });
+    } catch(ex) {
+        log.error("JSON stringify cached config", ex, log.DEBUG);
+    }
+    if (jsonStr) Cookies.set(cookieConfig.cachedConfig, jsonStr);
     return exports;
 };
 
@@ -171,70 +183,110 @@ exports.getSessionID = function() {
     return Cookies.get(cookieConfig.sessionID);
 };
 
+exports.getCachedConfig = function() {
+    var jsonStr = Cookies.get(cookieConfig.cachedConfig);
+    var config = null;
+    try {
+        if (jsonStr)
+            config = JSON.parse(jsonStr);
+    } catch(ex) {
+        log.error("JSON parse cached config", ex, log.DEBUG);
+    }
+    return config;
+};
+
 //
 // Session Attributes
 //
 exports.getSessionAttributes = function(attr) {
-  attr = (attr || {});
-  var locationData = location.toObject(); // document.location
-  var sourceData = source(); // document.referrer + location.search
+    attr = (attr || {});
+    var locationData = location.toObject(); // document.location
+    var sourceData = source(); // document.referrer + location.search
 
-  attr.sid = this.getSessionID();
-  attr.ad  = this.getSessionUUID();
-  attr.adt = 'browser';
-  attr.ct  = 'browser';
-  attr.lv  = config.isProduction() ? '0' : '1';
-  attr.sdk = config.sdkVersion;
-  attr.rfr = sourceData.referrer;
+    attr.sid = this.getSessionID();
+    attr.ad  = this.getSessionUUID();
+    attr.adt = 'browser';
+    attr.ct  = 'browser';
+    attr.lv  = config.isProduction() ? '0' : '1';
+    attr.sdk = config.sdkVersion;
+    attr.rfr = sourceData.referrer;
 
-  attr.exm = sourceData.search.utm_medium;
-  attr.exs = sourceData.search.utm_source;
-  attr.exc = sourceData.search.utm_campaign;
-  attr.ext = sourceData.search.utm_term;
-  attr.exct = sourceData.search.utm_content;
+    attr.exm = sourceData.search.utm_medium;
+    attr.exs = sourceData.search.utm_source;
+    attr.exc = sourceData.search.utm_campaign;
+    attr.ext = sourceData.search.utm_term;
+    attr.exct = sourceData.search.utm_content;
 
-  attr.prms = {
-      search: sourceData.search,
-      location: locationData
-  };
+    attr.prms = {
+        search: sourceData.search,
+        location: locationData
+    };
 
-  if (navigator && navigator.userAgent)
-      attr.prms.userAgent = navigator.userAgent;
+    if (navigator && navigator.userAgent)
+        attr.prms.userAgent = navigator.userAgent;
 
-  return attr;
+    return attr;
 };
 
-exports.saveSessionConfig = function(config) {
+exports.saveSessionConfig = function(config, errored) {
+    if (errored && !config) {
+        log.warning("Using cached config because of server error", null, log.DEBUG);
+        config = exports.getCachedConfig();
+    }
+
     exports.config = config;
-    exports.hasLoadedData = true;
-    if (config) {
+    exports.hasConfigData = true;
+
+    if (config && config.app_user_id && config.session_id) {
+        exports.hasLoadedData = true;
         exports.setAppUserID(config.app_user_id);
         exports.setSessionID(config.session_id);
         exports.tick();
     }
 
-    // call all session data promises, even if config doesn't load
-    var i = 0;
-    for (var i = 0; i < exports.sessionConfigPromises.length; i++) {
-        var promise = exports.sessionConfigPromises[i];
-        if (promise) promise(!!config);
+    if (config) {
+        exports.setCachedConfig(config);
+
+        for (var i=0; i < exports.configPromises.length; i++) {
+            var promise = exports.configPromises[i];
+            if (promise) promise(!!config);
+        }
+        exports.configPromises = [];
     }
-    exports.sessionConfigPromises = [];
+
+    // call all session config promises even if we have errored
+    if (errored || (config && config.app_user_id && config.session_id)) {
+        for (var i=0; i < exports.sessionConfigPromises.length; i++) {
+            var promise = exports.sessionConfigPromises[i];
+            if (promise) promise(!!config);
+        }
+        exports.sessionConfigPromises = [];
+    }
 };
 
 exports.sessionConfigPromises = [];
 exports.sessionConfigPromise = function(callback) {
     if (!callback) return;
-    if (exports.hasLoadedData && exports.data)
+    if (exports.hasLoadedData && exports.config)
         return callback(true);
     else
         exports.sessionConfigPromises.push(callback);
 };
 
+exports.hasConfigData = false;
+exports.configPromises = [];
+exports.configPromise = function(callback) {
+    if (!callback) return;
+    if (exports.hasConfigData && exports.config)
+        return callback(true);
+    else
+        exports.configPromises.push(callback);
+}
+
 exports.resetSession = function() {
     exports.deleteSessionID();
     exports.deleteAppUserID();
-    exports.data = null;
+    exports.config = null;
     exports.hasLoadedData = false;
 };
 

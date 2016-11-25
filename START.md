@@ -29,6 +29,18 @@ Replace `JS_SDK_TOKEN` with your JS SDK token. You can find your token in the se
 
 Note that this **will send a page view event** to us. If you want to disable the automatic page view event when Taplytics.js is initialized, check the documentation on the `init` function [here](https://taplytics.com/docs/javascript-sdk/reference#init) and about calling the `page` function manually [here](https://taplytics.com/docs/javascript-sdk/reference#page).
 
+#### Fast Mode
+
+By default the JS SDK makes a request to Taplytics servers to generate its configuration, this gives us access to advanced segmentation options based on browser information and user data. However if the loading of your website is blocked by a Taplytics variable, you can enable Fast Mode which moves all the experiment distribution to the client-side SDK from Taplytics servers. Your project's configuration for Fast Mode is stored on a globably distributed CDN to reduce load times, however you will lose access to server-side segmentation based on user information.
+
+Adding Fast Mode start option example:
+
+```javascript
+Taplytics.init("API_KEY", {
+    fast_mode: true
+});
+```
+
 #### Pin SDK version
 
 If you would like to pin the JS SDK to a specific SDK version change the `//cdn.taplytics.com/taplytics.min.js` url in the snipit above using the following url where `sdk_version` is the version you would like to pin to: `//cdn.taplytics.com/jssdk/sdk_version/taplytics.min.js`
@@ -54,8 +66,6 @@ Taplytics.identify({
 ```
 
 We accept a few known attributes and all unknown attributes are saved as custom attributes that can also be used. Read more about the `identify` function [here](https://taplytics.com/docs/javascript-sdk/reference#identify).
-
-
 
 ### 3. Track Events
 
@@ -102,12 +112,14 @@ Start options allow you to control how certain SDK features, such as the default
 |---        |---	        |---          |
 | timeout | Number | Set the request timeout in seconds. If requests timeout variables will use the default value, but no events will be saved. The default timeout is 4 seconds. |
 | test_experiments | Object | Set an Object containing pairs of experiment/variation combinations as key/value pairs to test with. [Docs](https://github.com/taplytics/Taplytics-js/blob/master/EXPERIMENTS.md#testing-experiments)|
+| fast_mode | Boolean | Enables client-side experiment distribution using CDN distributed configuration, but reduces segmentation options. [Docs](https://github.com/taplytics/Taplytics-js/blob/master/START.md#fast-mode) |
 
 Example: 
 
 ```javascript
 Taplytics.init("API_KEY", {
     timeout: 10,
+    fast_mode: true,
     test_experiments: {
         "JS experiment": "Variation 1",
         "JS experiment 2": "baseline"

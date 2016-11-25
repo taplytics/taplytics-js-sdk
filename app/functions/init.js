@@ -15,6 +15,7 @@ module.exports = function(token, options) {
     this.env = "production";
 
     if (options) {
+        this.api.config.startOptions = options;
         if (tools.isNumber(options.log_level))
             log.setPriorityLevel(options.log_level);
 
@@ -26,6 +27,9 @@ module.exports = function(token, options) {
 
         if (options.test_experiments)
             session.test_experiments = options.test_experiments;
+
+        if (options.fast_mode)
+            this.api.config.fastMode = options.fast_mode;
 
         if (tools.isNumber(options.timeout))
             this.api.request.setTimeout(options.timeout);
@@ -58,7 +62,7 @@ module.exports = function(token, options) {
     this.api.events.scheduleTick();
 
     // track
-    this.api.events.appActive();
+    this.api.events.watchLifecycleEvents();
 
     return this;
 };

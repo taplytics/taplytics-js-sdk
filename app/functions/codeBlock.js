@@ -6,7 +6,7 @@ module.exports = function(name, codeBlock) {
     if (!name) return log.error("No name to run code block", null, log.USER);
 
     // wait for session config data to load from our servers
-    session.sessionConfigPromise(function() {
+    session.configPromise(function() {
         var config = session.config;
         if (!config) return;
 

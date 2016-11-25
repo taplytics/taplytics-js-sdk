@@ -15,10 +15,10 @@
   "homepage": "https://github.com/taplytics/Taplytics-js",
   "dependencies": {
     "cookiejar": "^2.0.1",
-    "qs": "^2.4.1",
-    "superagent": "^1.1.0",
     "lscache": "git@github.com:taplytics/lscache.git#hotfix/remove-anonymous-amd-support",
-    "uuid": "^2.0.1"
+    "qs": "^2.4.1",
+    "superagent": "^3.0.0",
+    "uuid": "^3.0.0"
   },
   "devDependencies": {
     "browserify": "^9.0.7",
