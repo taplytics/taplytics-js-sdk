@@ -17,7 +17,7 @@ exports.get = function(key, useLS) {
     else {
         // Use local storage
         var value = lscache.get(key);
-        log.log("Got local storage key: " + key + " with value: " + value, log.LOUD);
+        log.log("Got local storage key: " + key + " with value: " + value, null, log.LOUD);
         return value;
     }
 };
@@ -43,7 +43,7 @@ exports.set = function(key, value, options, useLS) {
             expiry = 30;
         }
         lscache.set(key, value, expiry);
-        log.log("Setting local storage key: " + key + " to value: " + value, log.LOUD);
+        log.log("Setting local storage key: " + key + " to value: " + value, null, log.LOUD);
     }
 };
 
@@ -73,12 +73,16 @@ function updateJar() {
         var cValue;
 
         for (var i = 0; i < ca.length; i++) {
-            cValue = ca[i];
-            while (cValue.charAt(0) == ' ') {
-                cValue = cValue.substring(1);
-            }
+            try {
+                cValue = ca[i];
+                while (cValue.charAt(0) == ' ') {
+                    cValue = cValue.substring(1);
+                }
 
-            staticJar.setCookies(cValue);
+                staticJar.setCookies(cValue);
+            } catch(ex) {
+                log.error("Exception setting cookie", ex, log.DEBUG);
+            }
         }
     }
 }

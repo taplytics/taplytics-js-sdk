@@ -105,9 +105,10 @@ function getFastModeConfig() {
 
 function buildConfig(data) {
     var cachedConfig = session.getCachedConfig();
-    var expVarsNames = (cachedConfig && cachedConfig.expVarsNames) ? cachedConfig.expVarsNames : {};
+    var cachedExpVarsNames = (cachedConfig && cachedConfig.expVarsNames) ? cachedConfig.expVarsNames : {};
+    var expVarsNames = {};
     var expVarsIds = {};
-    var variables = (cachedConfig && cachedConfig.dynamicVars) ? cachedConfig.dynamicVars : {};
+    var dynamicVars = {};
 
     function addVariables(variables) {
         if (!variables || !variables.length) return;
@@ -115,8 +116,8 @@ function buildConfig(data) {
         for (var i=0; i < variables.length; i++) {
             var variable = variables[i];
             if (variable.isActive) {
-                if (!variables[variable.name])
-                    variables[variable.name] = variable;
+                if (!dynamicVars[variable.name])
+                    dynamicVars[variable.name] = variable;
                 else
                     log.log("Warning dynamic variable is used in two experiments, name: " + variable.name, null, log.LOG);
             }
@@ -124,23 +125,26 @@ function buildConfig(data) {
     }
 
     function chooseVariation(exp, variation) {
-        expVarsNames[exp.name] = variation.name;
-        expVarsIds[exp.id] = variation._id;
-        addVariables(variation.dynamicVariables);
+        if (variation === "b" || variation === "baseline") {
+            expVarsNames[exp.name] = "baseline";
+            expVarsIds[exp.id] = "b";
+            addVariables(exp.baseline.dynamicVariables);
+        }
+        else if (variation) {
+            expVarsNames[exp.name] = variation.name;
+            expVarsIds[exp.id] = variation._id;
+            addVariables(variation.dynamicVariables);
+        }
     }
 
     function findVariationId(exp, variationName) {
         if (!variationName) return null;
-        if (variationName === "baseline") {
-            addVariables(exp.baseline.dynamicVariables);
-            return "b";
-        }
+        if (variationName === "baseline" || variationName === "b") return "b";
 
-        for (var i=0; i < exp.variations; i++) {
+        for (var i=0; i < exp.variations.length; i++) {
             var variation = exp.variations[i];
             if (variation && variation.name === variationName) {
-                addVariables(variation.dynamicVariables);
-                return variation._id;
+                return variation;
             }
         }
     }
@@ -148,51 +152,54 @@ function buildConfig(data) {
     if (data.experiments) {
         for (var i=0; i < data.experiments.length; i++) {
             var exp = data.experiments[i];
+            // Look for winning variation
             var wonVariation = findWinningVariation(exp);
-            if (wonVariation) chooseVariation(exp, wonVariation);
-            if (expVarsNames[exp.name]) {
-                expVarsIds[exp.id] = findVariationId(exp, expVarsNames[exp.name]);
+            if (wonVariation) {
+                chooseVariation(exp, wonVariation);
                 continue;
             }
 
-            var variation = chooseVariationFromExperiment(exp);
-            if (variation) {
-                chooseVariation(exp, variation);
+            // find cached bucketed variation
+            if (cachedExpVarsNames[exp.name]) {
+                var foundVar = findVariationId(exp, cachedExpVarsNames[exp.name]);
+                if (foundVar) {
+                    chooseVariation(exp, foundVar);
+                    continue;
+                }
             }
-            else {
-                expVarsNames[exp.name] = "baseline";
-                expVarsIds[exp.id] = "b";
-                addVariables(exp.baseline.dynamicVariables);
-            }
+
+            // choose new variation for experiment
+            chooseVariation(exp, chooseVariationFromExperiment(exp));
         }
     }
 
+    // add default value of variables to dynamicVars so it doesn't try and re-create non active variables
     if (data.variables) {
         for (var i=0; i < data.variables.length; i++) {
             var variable = data.variables[i];
-            if (!variable || variables[variable.name]) continue;
+            if (!dynamicVars || dynamicVars[variable.name]) continue;
 
-            variables[variable.name] = variable;
+            dynamicVars[variable.name] = variable;
         }
     }
 
     return {
         expVarsNames: expVarsNames,
         expVars: expVarsIds,
-        dynamicVars: variables
+        dynamicVars: dynamicVars
     };
 }
 
 function findWinningVariation(exp) {
-    if (!exp || !exp.winningVariation_id) return null;
+    if (!exp || !exp.winning_variation) return null;
+    if (exp.winning_variation === "baseline") return "b";
 
-    var wonVariation = null;
     for (var i=0; i < exp.variations.length; i++) {
         var variation = exp.variations[i];
-        if (variation && !wonVariation && exp.winningVariation_id === variation._id)
-            wonVariation = variation;
+        if (variation && exp.winning_variation === variation._id)
+            return variation;
     }
-    return wonVariation;
+    return null;
 }
 
 function chooseVariationFromExperiment(exp) {
@@ -200,25 +207,26 @@ function chooseVariationFromExperiment(exp) {
 
     var rand = Math.random();
     var baselinePer = (_.isNumber(exp.baseline.distributionPercent)) ? exp.baseline.distributionPercent : 0;
-    var foundVariation = null;
 
     if (exp.baseline && exp.baseline.distributionPercent
         && rand < exp.baseline.distributionPercent) {
         log.log("Show Baseline For Experiment: " + exp._id, null, log.DEBUG);
-        return null;
+        return "baseline";
     }
     else {
         var per = baselinePer;
         for (var i=0; i < exp.variations.length; i++) {
             var variation = exp.variations[i];
-            if (variation.distributionPercent && !foundVariation) {
+            if (variation.distributionPercent) {
                 per += variation.distributionPercent;
                 if (rand < per) {
                     log.log("Show Variation: " + variation._id + ", for experiment: " + exp._id, null, log.DEBUG);
-                    foundVariation = variation;
+                    return variation;
                 }
             }
         }
-        return foundVariation;
+
+        log.error("Didn't find variation in experiment", null, log.DEBUG);
+        return "baseline";
     }
 }

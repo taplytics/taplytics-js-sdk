@@ -133,7 +133,8 @@ function processQueue() {
 // Helper Methods
 //
 function assembleURL(path, query) {
-    return config.obj().baseAPI + (path || '') + queryString(query);
+    var base = (path === "events" && config.obj().eventsAPI) ? config.obj().eventsAPI : config.obj().baseAPI
+    return base + (path || '') + queryString(query);
 }
 
 function assembleCDNURL(path) {

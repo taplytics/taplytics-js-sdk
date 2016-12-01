@@ -230,7 +230,7 @@ exports.getSessionAttributes = function(attr) {
 
 exports.saveSessionConfig = function(config, errored) {
     if (errored && !config) {
-        log.warning("Using cached config because of server error", null, log.DEBUG);
+        log.log("Using cached config because of server error", null, log.DEBUG);
         config = exports.getCachedConfig();
     }
 
