@@ -1,6 +1,6 @@
 var log = require('../lib/logger');
 var session = require('../lib/session');
-var tools = require('../lib/tools');
+var _ = require('../lib/tools');
 
 module.exports = function(event_name, value, attrs) {
     if (!this.isReady()) {
@@ -15,12 +15,12 @@ module.exports = function(event_name, value, attrs) {
     var val = value;
     var attributes = attrs;
 
-    if (tools.isObjectLike(value) && !attrs) { // for when function is used as (event_name, attrs)
+    if (_.isObjectLike(value) && !attrs) { // for when function is used as (event_name, attrs)
         val = undefined;
         attributes = value;
     }
 
-    if (val && !tools.isNumber(val)) {
+    if (val && !_.isNumber(val)) {
         log.error("track: if you're passing a value, it has to be a number.", null, log.USER);
         return false;
     }

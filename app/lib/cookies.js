@@ -1,10 +1,39 @@
 var log = require('./logger');
+var _ = require('./tools');
 
 var lscache = require('lscache');
 var CookieJar = require('cookiejar').CookieJar;
 var Cookie = require('cookiejar').Cookie;
 var CookieAccess = require('cookiejar').CookieAccessInfo;
 var accessInfo = new CookieAccess();
+
+if (!lscache.supported()) {
+    log.log("Local Storage not supported", null, log.DEBUG);
+    lscache = null;
+}
+
+exports.getJSON = function(key, useLS) {
+    var jsonValue = exports.get(key, useLS);
+    if (jsonValue && _.isString(jsonValue)) {
+        try {
+            return JSON.parse(jsonValue);
+        } catch(ex) {
+            log.error("JSON parse cookie value", ex, log.DEBUG);
+            return null;
+        }
+    }
+    else {
+        return jsonValue;
+    }
+};
+
+exports.getLS = function(key) {
+    if (!lscache) return null;
+
+    var value = lscache.get(key);
+    log.log("Got local storage key: " + key + " with value: " + value, null, log.LOUD);
+    return value;
+}
 
 exports.get = function(key, useLS) {
     if (getCookieSupport() && !useLS) {
@@ -14,12 +43,26 @@ exports.get = function(key, useLS) {
 
         return cookie.value;
     }
-    else {
-        // Use local storage
-        var value = lscache.get(key);
-        log.log("Got local storage key: " + key + " with value: " + value, null, log.LOUD);
-        return value;
+    else if (lscache) {
+        return exports.getLS(key);
     }
+    else if (useLS) {
+        return exports.get(key);
+    }
+};
+
+exports.setJSON = function(key, value, options, useLS) {
+    var jsonStr;
+    try {
+        if (_.isString(value)) {
+            jsonStr = value;
+        } else {
+            jsonStr = JSON.stringify(value);
+        }
+    } catch(ex) {
+        log.error("JSON stringify cookie value", ex, log.DEBUG);
+    }
+    exports.set(key, jsonStr, options, useLS);
 };
 
 exports.set = function(key, value, options, useLS) {
@@ -37,26 +80,34 @@ exports.set = function(key, value, options, useLS) {
 
         log.log("Setting cookies to:", cookieStr, log.LOUD);
     }
-    else {
-        var expiry = null;
-        if (options && options.expires) {
-            expiry = 30;
-        }
-        lscache.set(key, value, expiry);
-        log.log("Setting local storage key: " + key + " to value: " + value, null, log.LOUD);
+    else if (lscache) {
+        exports.setLS(key, value, options);
+    }
+    else if (useLS) {
+        exports.set(key, value, options);
     }
 };
+
+exports.setLS = function(key, value, options) {
+    if (!lscache) return;
+
+    var expiry = (options && options.expires) ? 30 : null;
+    lscache.set(key, value, expiry);
+    log.log("Setting local storage key: " + key + " to value: " + value, null, log.LOUD);
+}
 
 exports.expire = function(key, useLS) {
     if (getCookieSupport() && !useLS) {
         exports.set(key, "-", {expires: new Date()});
     }
-    else {
+    else if (lscache) {
         log.log("Deleting local storage key: " + key, log.LOUD);
         lscache.remove(key);
     }
+    else if (useLS) {
+        exports.expire(key);
+    }
 };
-
 
 var staticJar;
 function getJar() {

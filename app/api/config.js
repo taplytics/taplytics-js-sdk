@@ -105,7 +105,7 @@ function getFastModeConfig() {
 
 function buildConfig(data) {
     var cachedConfig = session.getCachedConfig();
-    var cachedExpVarsNames = (cachedConfig && cachedConfig.expVarsNames) ? cachedConfig.expVarsNames : {};
+    var cachedExpVarsNames = cachedConfig ? (cachedConfig.expVarsNamesHistory ? cachedConfig.expVarsNamesHistory : cachedConfig.expVarsNames) : {};
     var expVarsNames = {};
     var expVarsIds = {};
     var dynamicVars = {};
@@ -116,21 +116,23 @@ function buildConfig(data) {
         for (var i=0; i < variables.length; i++) {
             var variable = variables[i];
             if (variable.isActive) {
-                if (!dynamicVars[variable.name])
+                if (!dynamicVars[variable.name]) {
                     dynamicVars[variable.name] = variable;
-                else
+                } else {
                     log.log("Warning dynamic variable is used in two experiments, name: " + variable.name, null, log.LOG);
+                }
             }
         }
     }
 
     function chooseVariation(exp, variation) {
         if (variation === "b" || variation === "baseline") {
+            cachedExpVarsNames[exp.name] = "baseline";
             expVarsNames[exp.name] = "baseline";
             expVarsIds[exp.id] = "b";
             addVariables(exp.baseline.dynamicVariables);
-        }
-        else if (variation) {
+        } else if (variation) {
+            cachedExpVarsNames[exp.name] = variation.name;
             expVarsNames[exp.name] = variation.name;
             expVarsIds[exp.id] = variation._id;
             addVariables(variation.dynamicVariables);
@@ -184,6 +186,7 @@ function buildConfig(data) {
     }
 
     return {
+        expVarsNamesHistory: cachedExpVarsNames,
         expVarsNames: expVarsNames,
         expVars: expVarsIds,
         dynamicVars: dynamicVars

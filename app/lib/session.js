@@ -151,16 +151,11 @@ exports.deleteAppUserID = function() {
 };
 
 exports.setCachedConfig = function(config) {
-    var jsonStr;
-    try {
-        jsonStr = JSON.stringify({
-            expVarsNames: config.expVarsNames,
-            dynamicVars: config.dynamicVars
-        });
-    } catch(ex) {
-        log.error("JSON stringify cached config", ex, log.DEBUG);
-    }
-    if (jsonStr) Cookies.set(cookieConfig.cachedConfig, jsonStr);
+    Cookies.setJSON(cookieConfig.cachedConfig, {
+        expVarsNamesHistory: config ? config.expVarsNamesHistory : {},
+        expVarsNames: config ? config.expVarsNames : {},
+        dynamicVars: config ? config.dynamicVars : {}
+    }, null, true);
     return exports;
 };
 
@@ -184,15 +179,7 @@ exports.getSessionID = function() {
 };
 
 exports.getCachedConfig = function() {
-    var jsonStr = Cookies.get(cookieConfig.cachedConfig);
-    var config = null;
-    try {
-        if (jsonStr)
-            config = JSON.parse(jsonStr);
-    } catch(ex) {
-        log.error("JSON parse cached config", ex, log.DEBUG);
-    }
-    return config;
+    return Cookies.getJSON(cookieConfig.cachedConfig, true);;
 };
 
 //

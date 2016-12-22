@@ -171,7 +171,7 @@ function flushQueue() {
     // Flush eventsQueue.
     var events = eventsQueue.flush();
     var sessionID = session.getSessionID();
-    var lsEvents = cookies.get(eventsQueueKey, true);
+    var lsEvents = cookies.getLS(eventsQueueKey);
     if (lsEvents && lsEvents.length) {
         log.log("Add " + lsEvents.length + " events from local storage cache", null, log.DEBUG);
         events = events.concat(lsEvents);
@@ -196,5 +196,5 @@ function saveQueueToLocalStorage() {
     if (eventsQueue.isEmpty() || !session.hasLoadedData) return;
     var events = eventsQueue.flush();
     log.log("save " + events.length + " events to local storage", eventsQueue, log.DEBUG);
-    cookies.set(eventsQueueKey, events, null, true);
+    cookies.setLS(eventsQueueKey, events);
 }

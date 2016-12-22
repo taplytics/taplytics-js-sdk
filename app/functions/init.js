@@ -2,7 +2,7 @@ var log = require('../lib/logger');
 var location = require('../lib/location');
 var session = require('../lib/session');
 var cookies = require('../lib/cookies');
-var tools = require('../lib/tools');
+var _ = require('../lib/tools');
 
 var auto_page_view = true;
 
@@ -16,7 +16,7 @@ module.exports = function(token, options) {
 
     if (options) {
         this.api.config.startOptions = options;
-        if (tools.isNumber(options.log_level))
+        if (_.isNumber(options.log_level))
             log.setPriorityLevel(options.log_level);
 
         if (options.auto_page_view === false)
@@ -31,7 +31,7 @@ module.exports = function(token, options) {
         if (options.fast_mode)
             this.api.config.fastMode = options.fast_mode;
 
-        if (tools.isNumber(options.timeout))
+        if (_.isNumber(options.timeout))
             this.api.request.setTimeout(options.timeout);
     }
 
