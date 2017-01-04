@@ -86,8 +86,7 @@ function getFastModeConfig() {
         if (err || !response || !response.body) {
             log.error("Failed to get config", err, log.DEBUG);
             skipFastMode();
-        }
-        else {
+        } else {
             var data = buildConfig(response.body);
 
             if (data) {
@@ -103,6 +102,7 @@ function getFastModeConfig() {
     });
 };
 
+exports.buildConfig = buildConfig;
 function buildConfig(data) {
     var cachedConfig = session.getCachedConfig();
     var cachedExpVarsNames = cachedConfig ? (cachedConfig.expVarsNamesHistory ? cachedConfig.expVarsNamesHistory : cachedConfig.expVarsNames) : {};
@@ -206,13 +206,12 @@ function findWinningVariation(exp) {
 }
 
 function chooseVariationFromExperiment(exp) {
-    if (exp.variations.length === 0) return null;
+    if (exp.variations.length === 0) return "baseline";
 
     var rand = Math.random();
-    var baselinePer = (_.isNumber(exp.baseline.distributionPercent)) ? exp.baseline.distributionPercent : 0;
+    var baselinePer = _.isNumber(exp.baseline.distributionPercent) ? exp.baseline.distributionPercent : 0;
 
-    if (exp.baseline && exp.baseline.distributionPercent
-        && rand < exp.baseline.distributionPercent) {
+    if (baselinePer && (rand < baselinePer)) {
         log.log("Show Baseline For Experiment: " + exp._id, null, log.DEBUG);
         return "baseline";
     }
