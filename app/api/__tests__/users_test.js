@@ -34,7 +34,7 @@ describe("api.users.post", function() {
         expect(Taplytics.api.request.post).lastCalledWith(Taplytics.api.users.users_path, {}, {
             session: {
                 sid: session.getSessionID(),
-                ad: session.getSessionUUID(),
+                ad: session.getDeviceUUID(),
                 adt: 'browser',
                 ct: 'browser',
                 lv: '1',

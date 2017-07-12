@@ -7,6 +7,7 @@ var location = require('../lib/location');
 
 var cookieConfig = {
     cookieSessionID: '_tl_csid',
+    deviceUUID: '_tl_duuid',
     sessionUUID: '_tl_suuid',
     // Correspond to models on our system:
     sessionID: '_tl_sid',
@@ -30,7 +31,7 @@ exports.hasLoadedData = false;
 //
 exports.start = function () {
     exports.updateCookieSession()
-        .setSessionUUID();
+        .setDeviceUUID();
 
     return exports;
 };
@@ -117,13 +118,13 @@ exports.updateCookieSession = function() {
     return exports;
 };
 
-exports.setSessionUUID = function() {
-    var sessionUUID = exports.getSessionUUID();
-    if (!sessionUUID)
-        sessionUUID = uuidGenerator.v4();
+exports.setDeviceUUID = function() {
+    var deviceUUID = exports.getDeviceUUID();
+    if (!deviceUUID)
+        deviceUUID = uuidGenerator.v4();
 
-    Cookies.set(cookieConfig.sessionUUID, sessionUUID);
-    log.log("Set sessionUUID to: " + sessionUUID, null, log.DEBUG);
+    Cookies.set(cookieConfig.deviceUUID, deviceUUID, {expires: new Date(2147483647000)});
+    log.log("Set deviceUUID to: " + deviceUUID, null, log.DEBUG);
 
     return exports;
 };
@@ -150,10 +151,15 @@ exports.deleteAppUserID = function() {
     return exports;
 };
 
+exports.deleteSessionUUID = function () {
+    Cookies.expire(cookieConfig.sessionUUID);
+};
+
 exports.setCachedConfig = function(config) {
     Cookies.setJSON(cookieConfig.cachedConfig, {
         expVarsNamesHistory: config ? config.expVarsNamesHistory : {},
         expVarsNames: config ? config.expVarsNames : {},
+        expVarsIds: config ? config.expVarsIds : {},
         dynamicVars: config ? config.dynamicVars : {}
     }, null, true);
     return exports;
@@ -162,8 +168,14 @@ exports.setCachedConfig = function(config) {
 //
 // Getters
 //
-exports.getSessionUUID = function() {
-    return Cookies.get(cookieConfig.sessionUUID);
+exports.getDeviceUUID = function() {
+    if (Cookies.get(cookieConfig.sessionUUID))
+        return Cookies.get(cookieConfig.sessionUUID);
+
+    if (Cookies.get(cookieConfig.sessionUUID) === Cookies.get(cookieConfig.deviceUUID))
+        exports.deleteSessionUUID();
+
+    return Cookies.get(cookieConfig.deviceUUID);
 };
 
 exports.getCookieSessionID = function() {
@@ -191,7 +203,7 @@ exports.getSessionAttributes = function(attr) {
     var sourceData = source(); // document.referrer + location.search
 
     attr.sid = this.getSessionID();
-    attr.ad  = this.getSessionUUID();
+    attr.ad  = this.getDeviceUUID();
     attr.adt = 'browser';
     attr.ct  = 'browser';
     attr.lv  = config.isProduction() ? '0' : '1';
@@ -268,7 +280,7 @@ exports.configPromise = function(callback) {
         return callback(true);
     else
         exports.configPromises.push(callback);
-}
+};
 
 exports.resetSession = function() {
     exports.deleteSessionID();

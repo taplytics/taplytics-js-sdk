@@ -48,7 +48,7 @@ function buildSessionParams() {
 function postFastModeConfig() {
     var time = new Date();
     var sessionAttrs = buildSessionParams();
-    var config = session.config
+    var config = session.config;
     if (!config) return log.error("Missing config to POST", null, log.DEBUG);
 
     log.log("config_post", sessionAttrs, log.DEBUG);
@@ -105,8 +105,10 @@ function getFastModeConfig() {
 exports.buildConfig = buildConfig;
 function buildConfig(data) {
     var cachedConfig = session.getCachedConfig();
-    var cachedExpVarsNames = cachedConfig ? (cachedConfig.expVarsNamesHistory ? cachedConfig.expVarsNamesHistory : cachedConfig.expVarsNames) : {};
+
+    var cachedExpVarsNames = cachedConfig && cachedConfig.expVarsNamesHistory && cachedConfig.expVarsNames || {};
     var expVarsNames = {};
+    var cachedExpIds = cachedConfig && cachedConfig.expVarsIds || {};
     var expVarsIds = {};
     var dynamicVars = {};
 
@@ -127,9 +129,9 @@ function buildConfig(data) {
 
     function chooseVariation(exp, variation) {
         if (variation === "b" || variation === "baseline") {
+            expVarsIds[exp.id] = "b";
             cachedExpVarsNames[exp.name] = "baseline";
             expVarsNames[exp.name] = "baseline";
-            expVarsIds[exp.id] = "b";
             addVariables(exp.baseline.dynamicVariables);
         } else if (variation) {
             cachedExpVarsNames[exp.name] = variation.name;
@@ -139,13 +141,14 @@ function buildConfig(data) {
         }
     }
 
-    function findVariationId(exp, variationName) {
-        if (!variationName) return null;
-        if (variationName === "baseline" || variationName === "b") return "b";
+    function findVariationId(exp, variationId) {
+        if (!variationId) return null;
+        if (variationId === "baseline" || variationId === "b") return "b";
 
         for (var i=0; i < exp.variations.length; i++) {
             var variation = exp.variations[i];
-            if (variation && variation.name === variationName) {
+            // check if variation _id or name equals variationId for backwards compatability.
+            if (variation && (variation._id === variationId || variation.name === variationId)) {
                 return variation;
             }
         }
@@ -162,8 +165,9 @@ function buildConfig(data) {
             }
 
             // find cached bucketed variation
-            if (cachedExpVarsNames[exp.name]) {
-                var foundVar = findVariationId(exp, cachedExpVarsNames[exp.name]);
+            if (cachedExpVarsNames[exp.name] || cachedExpIds[exp.id]) {
+                var variation = cachedExpIds[exp.id] || cachedExpVarsNames[exp.name];
+                var foundVar = findVariationId(exp, variation);
                 if (foundVar) {
                     chooseVariation(exp, foundVar);
                     continue;
@@ -188,7 +192,8 @@ function buildConfig(data) {
     return {
         expVarsNamesHistory: cachedExpVarsNames,
         expVarsNames: expVarsNames,
-        expVars: expVarsIds,
+        cachedExpIds: cachedExpIds,
+        expVarsIds: expVarsIds,
         dynamicVars: dynamicVars
     };
 }

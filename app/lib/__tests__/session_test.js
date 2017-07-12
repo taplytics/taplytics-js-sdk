@@ -1,12 +1,12 @@
 jest.dontMock('../session');
-
+jest.mock('../cookies');
 var should = require('should');
-var Cookies = require('cookies'); // mocked
-var uuidGenerator = require('uuid'); // mocked
+var Cookies = require('../cookies');
 
 
 var cookieConfig = {
     cookieSessionID: '_tl_csid',
+    deviceUUID: '_tl_duuid',
     sessionUUID: '_tl_suuid',
 
     // Correspond to models on our system:
@@ -30,19 +30,44 @@ describe("Session", function() {
         session.start();
 
         // Check values
-        var session_uuid = Cookies.get(cookieConfig.sessionUUID);
+        var device_uuid = Cookies.get(cookieConfig.deviceUUID);
         var cookie_session_id = Cookies.get(cookieConfig.cookieSessionID);
 
-        expect(session_uuid).not.toBeUndefined();
-        expect(session_uuid).not.toBeNull();
-        expect(session_uuid).toEqual('mocked_v4_uuid'); 
+        expect(device_uuid).not.toBeUndefined();
+        expect(device_uuid).not.toBeNull();
+        expect(device_uuid).toEqual('mocked_v4_uuid');
         expect(cookie_session_id).not.toBeUndefined();
         expect(cookie_session_id).not.toBeNull();
         expect(cookie_session_id).toEqual('mocked_v4_uuid'); 
 
         // Check getters
         expect(session.getCookieSessionID()).toEqual("mocked_v4_uuid");
-        expect(session.getSessionUUID()).toEqual("mocked_v4_uuid");
+        expect(session.getDeviceUUID()).toEqual("mocked_v4_uuid");
+    });
+
+    it("should keep the duuid across sessions", function() {
+        Cookies.__reset__();
+        var session = require('../session');
+        session.start();
+        var device_uuid = Cookies.get(cookieConfig.deviceUUID);
+
+        session.resetSession();
+        session.start();
+        var device_uuid_2 = Cookies.get(cookieConfig.deviceUUID);
+        expect(device_uuid).toEqual(device_uuid_2);
+    });
+
+    it("should handle the old suuid format", function() {
+        Cookies.__reset__();
+        var session = require('../session');
+        Cookies.set("_tl_csid", "ID");
+        Cookies.set("_tl_suuid", "sessionID");
+        session.start();
+
+        var device_uuid = Cookies.get(cookieConfig.deviceUUID);
+        var session_uuid = Cookies.get(cookieConfig.sessionUUID);
+        expect(session_uuid).toBeUndefined();
+        expect(device_uuid).toEqual("sessionID");
     });
 
     it("should set the App User ID", function() {

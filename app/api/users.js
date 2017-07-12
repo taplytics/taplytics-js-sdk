@@ -16,7 +16,7 @@ exports.del = function(next) {
 
         var sessionAttrs = {};
         sessionAttrs.sid = session.getSessionID();
-        sessionAttrs.ad  = session.getSessionUUID();
+        sessionAttrs.ad  = session.getDeviceUUID();
 
         var params = {};
         var body = {
