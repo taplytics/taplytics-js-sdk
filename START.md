@@ -113,6 +113,7 @@ Start options allow you to control how certain SDK features, such as the default
 | timeout | Number | Set the request timeout in seconds. If requests timeout variables will use the default value, but no events will be saved. The default timeout is 4 seconds. |
 | test_experiments | Object | Set an Object containing pairs of experiment/variation combinations as key/value pairs to test with. [Docs](https://github.com/taplytics/Taplytics-js/blob/master/EXPERIMENTS.md#testing-experiments)|
 | fast_mode | Boolean | Enables client-side experiment distribution using CDN distributed configuration, but reduces segmentation options. [Docs](https://github.com/taplytics/Taplytics-js/blob/master/START.md#fast-mode) |
+| cookie_domain | String | Set the domain that Taplytics will use to create cookies with. By default Taplytics will use a wildcard version of your top level domain that will work across sub-domains. For example a cookie from `web.taplytics.com` will be set as `.taplytics.com`, that will also work on another subdomain such as: `new.taplytics.com`. |
 
 Example: 
 
