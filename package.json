@@ -1,18 +1,18 @@
 {
   "name": "taplytics-js",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Taplytics JS SDK",
   "main": "app/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/taplytics/taplytics-js-sdk.git"
+    "url": "https://github.com/taplytics/Taplytics-js.git"
   },
   "author": "taplytics <hello@taplytics.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/taplytics/taplytics-js-sdk/issues"
+    "url": "https://github.com/taplytics/Taplytics-js/issues"
   },
-  "homepage": "https://github.com/taplytics/taplytics-js-sdk",
+  "homepage": "https://github.com/taplytics/Taplytics-js",
   "dependencies": {
     "cookiejar": "^2.0.1",
     "lscache": "git@github.com:taplytics/lscache.git#hotfix/remove-anonymous-amd-support",

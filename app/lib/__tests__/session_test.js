@@ -1,8 +1,8 @@
 jest.dontMock('../session');
 jest.mock('../cookies');
+
 var should = require('should');
 var Cookies = require('../cookies');
-
 
 var cookieConfig = {
     cookieSessionID: '_tl_csid',
@@ -20,13 +20,11 @@ var cookieConfig = {
     }
 };
 
-
 describe("Session", function() {
     it("should start a session an ID and UUID cookies", function() {
         Cookies.__reset__();
 
         var session = require('../session');
-
         session.start();
 
         // Check values
@@ -38,7 +36,7 @@ describe("Session", function() {
         expect(device_uuid).toEqual('mocked_v4_uuid');
         expect(cookie_session_id).not.toBeUndefined();
         expect(cookie_session_id).not.toBeNull();
-        expect(cookie_session_id).toEqual('mocked_v4_uuid'); 
+        expect(cookie_session_id).toEqual('mocked_v4_uuid');
 
         // Check getters
         expect(session.getCookieSessionID()).toEqual("mocked_v4_uuid");

@@ -1,5 +1,6 @@
 var log = require('./logger');
 var _ = require('./tools');
+var config = require('../../config');
 
 var lscache = require('lscache');
 var CookieJar = require('cookiejar').CookieJar;
@@ -140,14 +141,24 @@ function updateJar() {
 
 function keyValueToCookie(key, value, expiration) {
     var cookieStr = key + "=" + value;
-    // if (value)
-    //     cookieStr += "=" + value;
-
     var cookie = new Cookie(cookieStr);
-    if (expiration)
+    if (expiration) {
         cookie.expiration_date = expiration;
-
+    }
+    cookie.domain = config.obj().cookieDomain || exports.getCookieDomain();
     return cookie;
+}
+
+exports.getCookieDomain = function() {
+    var hostname = window.location.hostname;
+    var parts = hostname ? hostname.split('.').reverse() : null;
+    if (parts && parts.length >= 3) {
+        // see if the second level domain is a common SLD.
+        if (parts[1].match(/^(com|edu|gov|net|mil|org|nom|co|ca|name|info|biz)$/i)) {
+           return '.' + parts[2] + '.' + parts[1] + '.' + parts[0];
+        }
+    }
+    return (parts && parts.length > 1) ? '.' + parts[1] + '.' + parts[0] : null;
 }
 
 //

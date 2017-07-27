@@ -6,6 +6,7 @@ var _ = require('../lib/tools');
 
 exports.fastMode = false;
 exports.startOptions = null;
+exports.cookieDomain = null;
 
 // switch to get
 exports.get = function(skipFastMode) {

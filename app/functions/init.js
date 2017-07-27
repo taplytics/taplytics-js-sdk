@@ -31,6 +31,9 @@ module.exports = function(token, options) {
         if (options.fast_mode)
             this.api.config.fastMode = options.fast_mode;
 
+        if (options.cookie_domain)
+            this.api.config.cookieDomain = options.cookie_domain;
+
         if (_.isNumber(options.timeout))
             this.api.request.setTimeout(options.timeout);
     }

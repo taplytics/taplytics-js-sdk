@@ -207,7 +207,7 @@ exports.getSessionAttributes = function(attr) {
     attr.adt = 'browser';
     attr.ct  = 'browser';
     attr.lv  = config.isProduction() ? '0' : '1';
-    attr.sdk = config.sdkVersion;
+    attr.sdk = config.obj().sdkVersion;
     attr.rfr = sourceData.referrer;
 
     attr.exm = sourceData.search.utm_medium;
