@@ -6,7 +6,6 @@ var lscache = require('lscache');
 var CookieJar = require('cookiejar').CookieJar;
 var Cookie = require('cookiejar').Cookie;
 var CookieAccess = require('cookiejar').CookieAccessInfo;
-var accessInfo = new CookieAccess();
 
 if (!lscache.supported()) {
     log.log("Local Storage not supported", null, log.DEBUG);
@@ -39,6 +38,7 @@ exports.getLS = function(key) {
 exports.get = function(key, useLS) {
     if (getCookieSupport() && !useLS) {
         var jar = getJar();
+        var accessInfo = new CookieAccess(exports.getCookieDomain())
         var cookie = jar.getCookie(key, accessInfo);
         if (!cookie) return;
 
@@ -145,17 +145,19 @@ function keyValueToCookie(key, value, expiration) {
     if (expiration) {
         cookie.expiration_date = expiration;
     }
-    cookie.domain = config.obj().cookieDomain || exports.getCookieDomain();
+    cookie.domain = exports.getCookieDomain();
+
     return cookie;
 }
 
 exports.getCookieDomain = function() {
+    if (config.obj().cookieDomain) return config.obj().cookieDomain
     var hostname = window.location.hostname;
     var parts = hostname ? hostname.split('.').reverse() : null;
     if (parts && parts.length >= 3) {
         // see if the second level domain is a common SLD.
         if (parts[1].match(/^(com|edu|gov|net|mil|org|nom|co|ca|name|info|biz)$/i)) {
-           return '.' + parts[2] + '.' + parts[1] + '.' + parts[0];
+            return '.' + parts[2] + '.' + parts[1] + '.' + parts[0];
         }
     }
     return (parts && parts.length > 1) ? '.' + parts[1] + '.' + parts[0] : null;

@@ -64,7 +64,7 @@ describe("Session", function() {
 
         var device_uuid = Cookies.get(cookieConfig.deviceUUID);
         var session_uuid = Cookies.get(cookieConfig.sessionUUID);
-        expect(session_uuid).toBeUndefined();
+        expect(session_uuid).toEqual("sessionID");
         expect(device_uuid).toEqual("sessionID");
     });
 
