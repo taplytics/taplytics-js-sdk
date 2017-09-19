@@ -4,6 +4,7 @@ var log = require('./logger');
 var config = require('../../config');
 var source = require('../lib/source');
 var location = require('../lib/location');
+var CallbackPromiseHandler = require('../lib/CallbackPromiseHandler');
 
 var cookieConfig = {
     cookieSessionID: '_tl_csid',
@@ -191,7 +192,7 @@ exports.getSessionID = function() {
 };
 
 exports.getCachedConfig = function() {
-    return Cookies.getJSON(cookieConfig.cachedConfig, true);;
+    return Cookies.getJSON(cookieConfig.cachedConfig, true);
 };
 
 //
@@ -234,7 +235,7 @@ exports.saveSessionConfig = function(config, errored) {
     }
 
     exports.config = config;
-    exports.hasConfigData = true;
+    hasConfigData = true;
 
     if (config && config.app_user_id && config.session_id) {
         exports.hasLoadedData = true;
@@ -245,41 +246,35 @@ exports.saveSessionConfig = function(config, errored) {
 
     if (config) {
         exports.setCachedConfig(config);
-
-        for (var i=0; i < exports.configPromises.length; i++) {
-            var promise = exports.configPromises[i];
-            if (promise) promise(!!config);
-        }
-        exports.configPromises = [];
     }
+
+    configPromises.completePromises(!!config);
 
     // call all session config promises even if we have errored
     if (errored || (config && config.app_user_id && config.session_id)) {
-        for (var i=0; i < exports.sessionConfigPromises.length; i++) {
-            var promise = exports.sessionConfigPromises[i];
-            if (promise) promise(!!config);
-        }
-        exports.sessionConfigPromises = [];
+        sessionConfigPromises.completePromises(!!config);
     }
 };
 
-exports.sessionConfigPromises = [];
+var sessionConfigPromises = new CallbackPromiseHandler({name: "sessionConfigPromises"});
 exports.sessionConfigPromise = function(callback) {
     if (!callback) return;
-    if (exports.hasLoadedData && exports.config)
+    if (exports.hasLoadedData && exports.config) {
         return callback(true);
-    else
-        exports.sessionConfigPromises.push(callback);
+    } else {
+        sessionConfigPromises.push(callback);
+    }
 };
 
-exports.hasConfigData = false;
-exports.configPromises = [];
+var hasConfigData = false;
+var configPromises = new CallbackPromiseHandler({name: "configPromises"});
 exports.configPromise = function(callback) {
     if (!callback) return;
-    if (exports.hasConfigData && exports.config)
+    if (hasConfigData && exports.config) {
         return callback(true);
-    else
-        exports.configPromises.push(callback);
+    } else {
+        configPromises.push(callback);
+    }
 };
 
 exports.resetSession = function() {

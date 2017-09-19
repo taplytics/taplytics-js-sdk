@@ -11,17 +11,14 @@ exports.users_path = 'users';
 exports.del = function(next) {
     session.sessionConfigPromise(function() {
         var appUserID = session.getAppUserID();
-        if (!appUserID)
-            return;
+        if (!appUserID) return;
 
         var sessionAttrs = {};
         sessionAttrs.sid = session.getSessionID();
         sessionAttrs.ad  = session.getDeviceUUID();
 
         var params = {};
-        var body = {
-            session: sessionAttrs
-        };
+        var body = {session: sessionAttrs};
 
         log.log("users_del", body, log.DEBUG);
 

@@ -21,8 +21,7 @@ module.exports = function(name, codeBlock) {
             if (codeBlock && dynamicVar.value) {
                 codeBlock();
             }
-        }
-        else {
+        } else {
             // upload new variable to server
             log.log("New Taplytics Code Block: " + name, null, log.DEBUG);
             variableAPI.post({

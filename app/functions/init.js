@@ -16,26 +16,33 @@ module.exports = function(token, options) {
 
     if (options) {
         this.api.config.startOptions = options;
-        if (_.isNumber(options.log_level))
+        if (_.isNumber(options.log_level)) {
             log.setPriorityLevel(options.log_level);
+        }
 
-        if (options.auto_page_view === false)
+        if (options.auto_page_view === false) {
             auto_page_view = false;
+        }
 
-        if (options.env)
+        if (options.env) {
             this.env = options.env;
+        }
 
-        if (options.test_experiments)
+        if (options.test_experiments) {
             session.test_experiments = options.test_experiments;
+        }
 
-        if (options.fast_mode)
+        if (options.fast_mode) {
             this.api.config.fastMode = options.fast_mode;
+        }
 
-        if (options.cookie_domain)
+        if (options.cookie_domain) {
             this.api.config.cookieDomain = options.cookie_domain;
+        }
 
-        if (_.isNumber(options.timeout))
+        if (_.isNumber(options.timeout)) {
             this.api.request.setTimeout(options.timeout);
+        }
     }
 
     /* Initialization */
@@ -58,8 +65,9 @@ module.exports = function(token, options) {
     /* Track current page and other page views. */
     // location.listen(app);
 
-    if (auto_page_view && this.page)
+    if (auto_page_view && this.page) {
         this.page();
+    }
 
     // Initiate flushQueue:
     this.api.events.scheduleTick();
@@ -72,8 +80,9 @@ module.exports = function(token, options) {
 
 // Helper functions
 function isValidToken(token) {
-    if (!token || typeof token !== "string")
+    if (!token || typeof token !== "string") {
         return false;
+    }
 
     return (!!token.length);
 }

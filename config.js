@@ -20,7 +20,9 @@ exports.obj = function() {
 
     config.functionFlushQueueTimeout = 500;
 
-    config.sdkVersion = "1.2.3";
+    config.sdkVersion = "1.2.7";
+
+    config.cookieDomain = (app && app.api && app.api.config && app.api.config.cookieDomain) ? app.api.config.cookieDomain : null;
 
     return config;
 };

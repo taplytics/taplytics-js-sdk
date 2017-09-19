@@ -19,21 +19,19 @@ exports.del  = queueRequest(deleteRequest);
 //
 var minTimeout = 1000; // 1 seconds
 var maxTimeout = 30 * 1000; // 30 seconds
-var timeout = 4000; // default 4 second timeout
+exports.timeout = 4000; // default 4 second timeout
 
 exports.setTimeout = function(timeoutSec) {
     var userTimeout = timeoutSec * 1000;
     if (userTimeout > maxTimeout) {
         log.error("Timeout is larger then max timeout! timeout: " + timeoutSec + "s, max timeout: " + (maxTimeout / 1000) + "s. Using max timeout value.", null, log.USER);
-        timeout = maxTimeout;
-    }
-    else if (userTimeout < minTimeout) {
+        exports.timeout = maxTimeout;
+    } else if (userTimeout < minTimeout) {
         log.error("Timeout is smaller then the min timeout! timeout: " + timeoutSec + "s, min timeout: " + (minTimeout / 1000) + "s. Using min timeout value.", null, log.USER);
-        timeout = minTimeout;
-    }
-    else {
+        exports.timeout = minTimeout;
+    } else {
         log.log("Set timeout: " + timeoutSec + "s", null, log.LOUD);
-        timeout = userTimeout;
+        exports.timeout = userTimeout;
     }
 };
 
@@ -47,7 +45,7 @@ function getRequest(path, queryDatum, cb) {
 
     request.get(url)
         .query(params.query)
-        .timeout(timeout)
+        .timeout(exports.timeout)
         .end(callbackWrapper(url, cb));
 }
 
@@ -56,7 +54,7 @@ function getJSONRequest(path, cb) {
     log.log("GET JSON file request: " + url, null, log.LOUD);
 
     request.get(url)
-        .timeout(timeout)
+        .timeout(exports.timeout)
         .end(callbackWrapper(url, cb));
 }
 
@@ -80,7 +78,7 @@ function deleteRequest(path, queryDatum, payloadDatum, cb) {
     request.del(url)
         .query(params.query)
         .set('Content-Type', 'application/json')
-        .timeout(timeout)
+        .timeout(exports.timeout)
         .send(params.payload)
         .end(callbackWrapper(url, cb));
 }
@@ -112,8 +110,9 @@ function queueRequest(requestFunction) {
             args: arguments
         });
 
-        if (!isRequesting)
+        if (!isRequesting) {
             processQueue();
+        }
     };
 }
 
@@ -151,20 +150,23 @@ function getRequestQueryAndPayload(queryDatum, payloadDatum) {
     var query = {};
     var payload = {};
 
-    if (queryDatum && typeof queryDatum == "function")
+    if (queryDatum && typeof queryDatum == "function") {
         query = queryDatum();
-    else if (queryDatum)
+    } else if (queryDatum) {
         query = queryDatum;
+    }
 
-    if (payloadDatum && typeof payloadDatum == "function")
+    if (payloadDatum && typeof payloadDatum == "function") {
         payload = payloadDatum();
-    else if (payloadDatum)
+    } else if (payloadDatum) {
         payload = payloadDatum;
+    }
 
     query.r_v = '0'; // No btoa support, revert to normal JSON
 
-    if (exports.publicToken)
+    if (exports.publicToken) {
         query.public_token = exports.publicToken;
+    }
 
     return {
         query: query,

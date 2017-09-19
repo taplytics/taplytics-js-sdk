@@ -21,8 +21,7 @@ exports.getJSON = function(key, useLS) {
             log.error("JSON parse cookie value", ex, log.DEBUG);
             return null;
         }
-    }
-    else {
+    } else {
         return jsonValue;
     }
 };
@@ -38,16 +37,14 @@ exports.getLS = function(key) {
 exports.get = function(key, useLS) {
     if (getCookieSupport() && !useLS) {
         var jar = getJar();
-        var accessInfo = new CookieAccess(exports.getCookieDomain())
+        var accessInfo = new CookieAccess(exports.getCookieDomain());
         var cookie = jar.getCookie(key, accessInfo);
         if (!cookie) return;
 
         return cookie.value;
-    }
-    else if (lscache) {
+    } else if (lscache) {
         return exports.getLS(key);
-    }
-    else if (useLS) {
+    } else if (useLS) {
         return exports.get(key);
     }
 };
@@ -80,11 +77,9 @@ exports.set = function(key, value, options, useLS) {
         cookieJar.setCookie(cookieStr);
 
         log.log("Setting cookies to:", cookieStr, log.LOUD);
-    }
-    else if (lscache) {
+    } else if (lscache) {
         exports.setLS(key, value, options);
-    }
-    else if (useLS) {
+    } else if (useLS) {
         exports.set(key, value, options);
     }
 };
@@ -100,12 +95,10 @@ exports.setLS = function(key, value, options) {
 exports.expire = function(key, useLS) {
     if (getCookieSupport() && !useLS) {
         exports.set(key, "-", {expires: new Date()});
-    }
-    else if (lscache) {
-        log.log("Deleting local storage key: " + key, log.LOUD);
+    } else if (lscache) {
+        log.log("Deleting local storage key: " + key, null, log.LOUD);
         lscache.remove(key);
-    }
-    else if (useLS) {
+    } else if (useLS) {
         exports.expire(key);
     }
 };
@@ -151,7 +144,8 @@ function keyValueToCookie(key, value, expiration) {
 }
 
 exports.getCookieDomain = function() {
-    if (config.obj().cookieDomain) return config.obj().cookieDomain
+    if (config.obj().cookieDomain) return config.obj().cookieDomain;
+
     var hostname = window.location.hostname;
     var parts = hostname ? hostname.split('.').reverse() : null;
     if (parts && parts.length >= 3) {
@@ -185,6 +179,7 @@ function getCookieSupport() {
             return persist;
         }
     } while (!(persist = !persist));
+
     cookieSupport = null;
     return null;
 }

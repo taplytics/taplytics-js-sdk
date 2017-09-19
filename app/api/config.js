@@ -21,10 +21,10 @@ exports.get = function(skipFastMode) {
         if (err) {
             log.error("Failed to get config", err, log.DEBUG);
             session.saveSessionConfig(null, true);
-        }
-        else {
+        } else {
             var data = response.body;
             session.saveSessionConfig(data);
+
             if (data) {
                 events.clientConfig(time);
                 log.time("config.get: successfully got session config data", response, time, log.DEBUG);
@@ -57,8 +57,7 @@ function postFastModeConfig() {
         if (err) {
             log.error("Failed to post config", err, log.DEBUG);
             session.saveSessionConfig(config, true);
-        }
-        else {
+        } else {
             var data = response.body;
             if (data) {
                 config.app_user_id = data.app_user_id;
@@ -205,8 +204,9 @@ function findWinningVariation(exp) {
 
     for (var i=0; i < exp.variations.length; i++) {
         var variation = exp.variations[i];
-        if (variation && exp.winning_variation === variation._id)
+        if (variation && exp.winning_variation === variation._id) {
             return variation;
+        }
     }
     return null;
 }
@@ -220,8 +220,7 @@ function chooseVariationFromExperiment(exp) {
     if (baselinePer && (rand < baselinePer)) {
         log.log("Show Baseline For Experiment: " + exp._id, null, log.DEBUG);
         return "baseline";
-    }
-    else {
+    } else {
         var per = baselinePer;
         for (var i=0; i < exp.variations.length; i++) {
             var variation = exp.variations[i];
