@@ -17,3 +17,5 @@ Guide on how to setup Experiments with Taplytics.js [here](/EXPERIMENTS.md)
 ## Technical Documentation
 
 You can find the full technical documentation of Taplytics.js [here](/DOCS.md).
+
+[Commercial License / Terms](https://taplytics.com/terms/)
