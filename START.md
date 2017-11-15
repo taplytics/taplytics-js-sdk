@@ -2,14 +2,81 @@ To fully utilize the power of Taplytics.js, you simply have to:
 
 | # | Step |
 | ---- | ---------------- |
-| 1 | [Initialize Taplytics.js](#1-load-taplytics) |
+| 1A | [Synchronous script loading](#1A-synchronous-script-loading) |
+| 1B | [Asynchronous script loading](#1B-asynchronous-script-loading) |
 | 2 | [Identify Users](#2-identify-users) |
 | 3 | [Track Events](#3-track-events) |
 | 4 | [Track Page Views](#4-track-page-views) |
 
-### 1. Load Taplytics
+## 1A Synchronous script loading
 
-To install Taplytics.js, you have to include the following snippet into the header or body of your site:
+To best utilize Taplytics JS SDK you will want to install it as a synchronous loading script. This will ensure your users never see your content switching from baseline to their bucketed variations.
+
+We recommend installing the Taplytics JS SDK script **as high as possible** in your `<head>` tag, ideally before any other analytics tools or other scripts are loaded.
+
+To install the Taplytics JS SDK synchronously, use the following script tag. Replace `{JS_SDK_TOKEN}` in the src url with your own JS SDK Token from the Taplytics web dashboard:
+
+```html
+<script type="text/javascript" src="https://js.taplytics.com/jssdk/{JS_SDK_TOKEN}.min.js"></script>
+```
+
+Example implementation:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!-- Add other meta information -->
+        <!-- Add stylesheets -->
+        <script type="text/javascript" src="https://js.taplytics.com/jssdk/{JS_SDK_TOKEN}.min.js"></script>
+        <!-- Add other scripts and content -->
+    </head>
+    <body>
+    ...
+    </body>
+</html>    
+```
+
+#### Pin SDK version
+
+To pin the SDK to a specific version adjust the url in the `src` of the script tag to include the Taplytics JS SDK version after `/jssdk/` in the url. For Example replace `{VERSION_NUMBER}` with the pinned SDK version:
+
+```
+<script type="text/javascript" src="https://js.taplytics.com/jssdk/{VERSION_NUMBER}/{JS_SDK_TOKEN}.min.js"></script>
+```
+
+#### Start Options
+
+Start options allow you to control how certain SDK features, such as the default request timeout. For the synchronous script these need to be added as url encoded query parameters to the end of the `src` url on the script tag.
+
+|Start Option |Type |Description |
+|---        |---	        |---          |
+| test_experiments | Object | Set an Object containing pairs of experiment/variation combinations as key/value pairs to test with. [Docs](https://github.com/taplytics/Taplytics-js/blob/master/EXPERIMENTS.md#testing-experiments)|
+| cookie_domain | String | Set the domain that Taplytics will use to create cookies with. By default Taplytics will use a wildcard version of your top level domain that will work across sub-domains. For example a cookie from `web.taplytics.com` will be set as `.taplytics.com`, that will also work on another subdomain such as: `new.taplytics.com`. |
+| user_attributes | Object | Set initial user attributes to be used during initial segmentation. This allows you to set custom data and user attributes that will be used by Taplytics to segment your user into experiments, user attributes set after calling `Taplytics.init()` won't be used for segmentation until the next session. Format of user attributes defined [here](https://taplytics.com/docs/javascript-sdk/reference#identify). |
+
+
+Any Object fields will need to be url encoded, to do that simply in Javascript: 
+
+```javascript
+const user_attributes = encodeURIComponent(JSON.stringify({
+	"user_id": "user1", 
+	"customValue": 10
+}))
+```
+
+Example: 
+
+```javascript
+<script type="text/javascript" src="https://js.taplytics.com/jssdk/{JS_SDK_TOKEN}.min.js?cookie_domain=web.taplytics.com&test_experiments=%7B%22exp%22%3A%22var%22%7D&user_attributes=%7B%22user_id%22%3A%22user1%22%2C%22customValue%22%3A10%7D></script>
+```
+
+## 1B Asynchronous script loading
+
+**Note: you only need to load the script once, do not load the synchronous script and the asynchronous script!**
+
+To install Taplytics JS SDK *asynchronously*, you have to include the following snippet into the header or body of your site:
 
 ```html
 <script type="text/javascript">
@@ -17,7 +84,7 @@ To install Taplytics.js, you have to include the following snippet into the head
 </script>
 ```
 
-This will load Taplytics.js *asynchronously*, so it will not affect your page load speed.
+This will load Taplytics.js *asynchronously*, so it will not affect your page load speed. We advise you use the synchronous script loading for any experiments applying content changes.
 
 Other than that, all you have to do is initialize our SDK by using the `init` function:
 
@@ -25,13 +92,15 @@ Other than that, all you have to do is initialize our SDK by using the `init` fu
 Taplytics.init("JS_SDK_TOKEN");
 ```
 
-Replace `JS_SDK_TOKEN` with your JS SDK token. You can find your token in the settings page of your project.
+Replace `JS_SDK_TOKEN` with your JS SDK token. You can find your token in the settings page of your project in the Taplytics dashboard.
 
 Note that this **will send a page view event** to us. If you want to disable the automatic page view event when Taplytics.js is initialized, check the documentation on the `init` function [here](https://taplytics.com/docs/javascript-sdk/reference#init) and about calling the `page` function manually [here](https://taplytics.com/docs/javascript-sdk/reference#page).
 
 #### Fast Mode
 
-By default the JS SDK makes a request to Taplytics servers to generate its configuration, this gives us access to advanced segmentation options based on browser information and user data. However if the loading of your website is blocked by a Taplytics variable, you can enable Fast Mode which moves all the experiment distribution to the client-side SDK from Taplytics servers. Your project's configuration for Fast Mode is stored on a globably distributed CDN to reduce load times, however you will lose access to server-side segmentation based on user information.
+**Deprecated: we advise using Synchronous script loading instead. **
+
+By default the JS SDK makes a request to Taplytics servers to generate its configuration, this gives us access to advanced segmentation options based on browser information and user data. However if the loading of your website is blocked by a Taplytics variable, you can enable Fast Mode which moves all the experiment distribution to the client-side SDK from Taplytics servers. Your project's configuration for Fast Mode is stored on a globally distributed CDN to reduce load times, however you will lose access to server-side segmentation based on user information.
 
 Adding Fast Mode start option example:
 
@@ -43,11 +112,38 @@ Taplytics.init("API_KEY", {
 
 #### Pin SDK version
 
-If you would like to pin the JS SDK to a specific SDK version change the `//cdn.taplytics.com/taplytics.min.js` url in the snipit above using the following url where `sdk_version` is the version you would like to pin to: `//cdn.taplytics.com/jssdk/sdk_version/taplytics.min.js`
+If you would like to pin the JS SDK to a specific SDK version change the `//cdn.taplytics.com/taplytics.min.js` url in the snip-it above using the following url where `sdk_version` is the version you would like to pin to: `//cdn.taplytics.com/jssdk/sdk_version/taplytics.min.js`
+
+#### Start Options
+
+Start options allow you to control how certain SDK features, such as the default request timeout.
+
+|Start Option |Type |Description |
+|---        |---	        |---          |
+| timeout | Number | Set the request timeout in seconds. If requests timeout variables will use the default value, but no events will be saved. The default timeout is 4 seconds. |
+| test_experiments | Object | Set an Object containing pairs of experiment/variation combinations as key/value pairs to test with. [Learn more](https://github.com/taplytics/Taplytics-js/blob/master/EXPERIMENTS.md#testing-experiments). |
+| fast_mode | Boolean | Enables client-side experiment distribution using CDN distributed configuration, but reduces segmentation options. [Learn more](https://github.com/taplytics/Taplytics-js/blob/master/START.md#fast-mode). |
+| cookie_domain | String | Set the domain that Taplytics will use to create cookies with. By default Taplytics will use a wildcard version of your top level domain that will work across sub-domains. For example a cookie from `web.taplytics.com` will be set as `.taplytics.com`, that will also work on another subdomain such as: `new.taplytics.com`. |
+| user_attributes | Object | Set initial user attributes to be used during initial segmentation. This allows you to set custom data and user attributes that will be used by Taplytics to segment your user into experiments, user attributes set after calling `Taplytics.init()` won't be used for segmentation until the next session. For the format of user attributes, [visit our reference documentation](https://taplytics.com/docs/javascript-sdk/reference#identify). |
+
+Example: 
+
+```javascript
+Taplytics.init("API_KEY", {
+    timeout: 10,
+    fast_mode: true,
+    test_experiments: {
+        "JS experiment": "Variation 1",
+        "JS experiment 2": "baseline"
+    }
+});
+```
 
 ### 2. Identify Users
 
-Using the `identify` function, you can let us know who the current user is on the page. It can also be used to let us know about any [user attributes](https://taplytics.com/docs/user-attributes-setup) that can be used for segmentation in our system.
+Using the `identify` function, you can let us know who the current user is on the page. It can also be used to let us know about any user attribute that can be used for segmentation in our system.
+
+We accept a few known attributes and all unknown attributes are saved as custom attributes that can also be used. Read more about the `identify` function [here](https://taplytics.com/docs/javascript-sdk/reference#identify).
 
 Here's a quick example:
 
@@ -64,8 +160,6 @@ Taplytics.identify({
     store_credit: 102.14
 });
 ```
-
-We accept a few known attributes and all unknown attributes are saved as custom attributes that can also be used. Read more about the `identify` function [here](https://taplytics.com/docs/javascript-sdk/reference#identify).
 
 ### 3. Track Events
 
@@ -101,31 +195,5 @@ Note that you can call the function by itself without any arguments as well. Rea
 ### 5. Experiments
 
 To setup code experiments with the Taplytics JS SDK check out this [guide](https://taplytics.com/docs/javascript-sdk/experiments).
-
----
-
-### Start Options
-
-Start options allow you to control how certain SDK features, such as the default request timeout.
-
-|Start Option |Type |Description |
-|---        |---	        |---          |
-| timeout | Number | Set the request timeout in seconds. If requests timeout variables will use the default value, but no events will be saved. The default timeout is 4 seconds. |
-| test_experiments | Object | Set an Object containing pairs of experiment/variation combinations as key/value pairs to test with. [Docs](https://github.com/taplytics/Taplytics-js/blob/master/EXPERIMENTS.md#testing-experiments)|
-| fast_mode | Boolean | Enables client-side experiment distribution using CDN distributed configuration, but reduces segmentation options. [Docs](https://github.com/taplytics/Taplytics-js/blob/master/START.md#fast-mode) |
-| cookie_domain | String | Set the domain that Taplytics will use to create cookies with. By default Taplytics will use a wildcard version of your top level domain that will work across sub-domains. For example a cookie from `web.taplytics.com` will be set as `.taplytics.com`, that will also work on another subdomain such as: `new.taplytics.com`. |
-
-Example: 
-
-```javascript
-Taplytics.init("API_KEY", {
-    timeout: 10,
-    fast_mode: true,
-    test_experiments: {
-        "JS experiment": "Variation 1",
-        "JS experiment 2": "baseline"
-    }
-});
-```
 
 

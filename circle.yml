@@ -1,9 +1,0 @@
-machine:
-  node:
-    version: 0.10.35
-dependencies:
-  pre:
-    - npm config set spinner false
-  override:
-    - npm install --loglevel verbose 2>&1 | tee $CIRCLE_ARTIFACTS/npm-install.log
-
