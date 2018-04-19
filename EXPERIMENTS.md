@@ -18,7 +18,7 @@ Taplytics variables are values in your website that are controlled by experiment
 
 #### Asynchronous
 
-Asynchronous variables take care of insuring that the experiments have been loaded before returning a value. This removes any danger of tainting the results of your experiment with bad data. What comes with the insurance of using the correct value is the possibility that the value will not be set immediately. If the variable is constructed *before* the experiments are loaded, you won't have the correct value until the experiments have finished loading. If the experiments fail to load, then you will be given the default value, as specified in the variables constructor.
+Asynchronous variables take care of ensuring that the experiments have been loaded before returning a value. This removes any danger of tainting the results of your experiment with bad data. What comes with the insurance of using the correct value is the possibility that the value will not be set immediately. If the variable is constructed *before* the experiments are loaded, you won't have the correct value until the experiments have finished loading. If the experiments fail to load, then you will be given the default value, as specified in the variables constructor.
 
 Asynchronous variables take three parameters in its constructor:
 
@@ -41,7 +41,7 @@ When the SDK has loaded the experiment config from our servers, the updated bloc
 
 #### Synchronous
 
-Due to the synchronous nature of the variable, if it is used before the experiments have been loaded from Taplytics servers, it's value will be the default value rather than the value set for that experiment. This could taint the results of the experiment. In order to prevent this you can ensure that the experiments are loaded before using the variable. This can be done using the `propertiesLoaded` method, as an example: 
+Due to the synchronous nature of the variable, if it is used before the experiments have been loaded from Taplytics servers, its value will be the default value rather than the value set for that experiment. This could taint the results of the experiment. In order to prevent this you can ensure that the experiments are loaded before using the variable. This can be done using the `propertiesLoaded` method, as an example: 
 
 ```javascript
 Taplytics.propertiesLoaded(function() {
@@ -87,6 +87,23 @@ Taplytics.runningExperiments(function(expAndVars) {
 
 NOTE: The block can return asynchronously once Taplytics config has loaded. The block will return an Object with experiment names as the key values, and variation names as the values.
 
+
+## Get Running Feature Flags
+
+To see your project's currently active feature flags use the  `runningFeatureFlags` function. This will return a list of feature flags that are active for your project once the config has loaded. An example:
+
+```javascript
+Taplytics.runningFeatureFlags(function(featureFlags) {
+    // For example: 
+    // ff = {
+    //  "mainFeature": "My First Feature Flag",
+    //  "secondaryFeature": "My Second Feature Flag",
+    //  "key name with spaces": "My Final Feature Flag",
+    //};
+});
+```
+
+NOTE: The block can return asynchronously once Taplytics config has loaded. The block will return an Object with feature flag key name as a property and the feature flag's name as its corresponding value.
 ## Testing Experiments
 
 To test/QA specific experiment and variation combinations use the `test_experiments` option with an Object containing keys of the experiment names, and values of variation names (or `baseline`).
