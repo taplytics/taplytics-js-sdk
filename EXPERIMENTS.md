@@ -18,7 +18,7 @@ Taplytics variables are values in your website that are controlled by experiment
 
 #### Asynchronous
 
-Asynchronous variables take care of ensuring that the experiments have been loaded before returning a value. This removes any danger of tainting the results of your experiment with bad data. What comes with the insurance of using the correct value is the possibility that the value will not be set immediately. If the variable is constructed *before* the experiments are loaded, you won't have the correct value until the experiments have finished loading. If the experiments fail to load, then you will be given the default value, as specified in the variables constructor.
+Asynchronous variables take care of insuring that the experiments have been loaded before returning a value. This removes any danger of tainting the results of your experiment with bad data. What comes with the insurance of using the correct value is the possibility that the value will not be set immediately. If the variable is constructed *before* the experiments are loaded, you won't have the correct value until the experiments have finished loading. If the experiments fail to load, then you will be given the default value, as specified in the variables constructor.
 
 Asynchronous variables take three parameters in its constructor:
 
@@ -31,7 +31,7 @@ The type of the variable is defined by the type of the default value, and can be
 For example, using a variable of type `Number`:
 
 ```javascript
-Taplytics.variable("JS Number", 1, function(value) {
+Taplytics.variable("JS Number", 1, (value) => {
     // function called when experiment config has loaded and value has been set
     console.log("JS Number value: " + value);
 });
@@ -41,10 +41,10 @@ When the SDK has loaded the experiment config from our servers, the updated bloc
 
 #### Synchronous
 
-Due to the synchronous nature of the variable, if it is used before the experiments have been loaded from Taplytics servers, its value will be the default value rather than the value set for that experiment. This could taint the results of the experiment. In order to prevent this you can ensure that the experiments are loaded before using the variable. This can be done using the `propertiesLoaded` method, as an example: 
+Due to the synchronous nature of the variable, if it is used before the experiments have been loaded from Taplytics servers, it's value will be the default value rather than the value set for that experiment. This could taint the results of the experiment. In order to prevent this you can ensure that the experiments are loaded before using the variable. This can be done using the `propertiesLoaded` method, as an example: 
 
 ```javascript
-Taplytics.propertiesLoaded(function() {
+Taplytics.propertiesLoaded(() => {
     var syncVar = Taplytics.variable("JS String", "default");
     console.log("JS String Sync value: " + syncVar.value);
 });
@@ -84,26 +84,7 @@ Taplytics.runningExperiments(function(expAndVars) {
     //};
 });
 ```
-
 NOTE: The block can return asynchronously once Taplytics config has loaded. The block will return an Object with experiment names as the key values, and variation names as the values.
-
-
-## Get Running Feature Flags
-
-To see your project's currently active feature flags use the  `runningFeatureFlags` function. This will return a list of feature flags that are active for your project once the config has loaded. An example:
-
-```javascript
-Taplytics.runningFeatureFlags(function(featureFlags) {
-    // For example: 
-    // ff = {
-    //  "mainFeature": "My First Feature Flag",
-    //  "secondaryFeature": "My Second Feature Flag",
-    //  "key name with spaces": "My Final Feature Flag",
-    //};
-});
-```
-
-NOTE: The block can return asynchronously once Taplytics config has loaded. The block will return an Object with feature flag key name as a property and the feature flag's name as its corresponding value.
 ## Testing Experiments
 
 To test/QA specific experiment and variation combinations use the `test_experiments` option with an Object containing keys of the experiment names, and values of variation names (or `baseline`).
@@ -116,3 +97,49 @@ Taplytics.init("API_KEY", {
     }
 });
 ```
+
+## Feature Flags
+
+Taplytics feature flags operate in synchronous mode.
+
+### Synchronous
+
+Synchronous feature flags are guaranteed to have the same value for the entire session and will have that value immediately after construction.
+
+```
+if (Taplytics.featureFlagEnabled("featureFlagKey")) {
+    //Put feature code here, or launch feature from here
+}
+```
+
+Due to the synchronous nature of feature flags, if it is used before the feature flags have been loaded from Taplytics servers, it will default to as if the feature flag is not present. In order to prevent this you can ensure that the feature flags are loaded before using the feature flag. This can be done using the `propertiesLoaded` method, as an example:
+
+```
+Taplytics.propertiesLoaded((loaded) => {
+    if (Taplytics.featureFlagEnabled("featureFlagKey")) {
+        // Put feature code here, or launch feature from here
+    }
+})
+```
+
+---
+
+## Running Feature Flags
+
+If you would like to see which feature flags are running, there exists a `getRunningFeatureFlags` function which provides a callback with an object that contains the currently active feature flags. An example:
+
+```
+Taplytics.getRunningFeatureFlags((runningFF) => {
+    // For example runningFF will contain:
+    //    {
+    //        "featureFlagKey": "My First Feature Flag",
+    //        "key with spaces": "My Second Feature Flag"
+    //    }
+});
+```
+
+NOTE: The block can return asynchronously once Taplytics properties have loaded. The feature flags will be provided in an object where the properties are the 
+feature flag key names and their corresponding values are the names of the associated feature flags.
+
+---
+
