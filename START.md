@@ -197,3 +197,23 @@ Note that you can call the function by itself without any arguments as well. Rea
 To setup code experiments with the Taplytics JS SDK check out this [guide](https://taplytics.com/docs/javascript-sdk/experiments).
 
 
+### 6. Opt-In/Out
+
+Using the User Opt-In / Opt-Out APIs allows you to simplify the process to get user consent for analytics tracking and experimentation. Calling `optOutTracking` will disable all Taplytics analytics tracking and experiments and delete all Taplytics cookies, and calling optInTracking will re-enable all Taplytics analytics tracking and experiments. You can retrieve the current status using: hasUserOptedOutTracking.
+
+```
+function optIn() {
+    console.log("opt in")
+    Taplytics.optInTracking();
+}
+
+function optOut() {
+    console.log("opt out")
+    Taplytics.optOutTracking();
+}
+
+function hasOptedOut() {
+    let hasUserOptedOut = Taplytics.hasUserOptedOutTracking();
+    console.log(`Has user opted out tracking: ${hasUserOptedOut}`)
+}
+```
