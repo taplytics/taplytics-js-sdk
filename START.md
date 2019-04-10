@@ -55,6 +55,8 @@ Start options allow you to control how certain SDK features, such as the default
 | test_experiments | Object | Set an Object containing pairs of experiment/variation combinations as key/value pairs to test with. [Docs](https://github.com/taplytics/Taplytics-js/blob/master/EXPERIMENTS.md#testing-experiments)|
 | cookie_domain | String | Set the domain that Taplytics will use to create cookies with. By default Taplytics will use a wildcard version of your top level domain that will work across sub-domains. For example a cookie from `web.taplytics.com` will be set as `.taplytics.com`, that will also work on another subdomain such as: `new.taplytics.com`. |
 | user_attributes | Object | Set initial user attributes to be used during initial segmentation. This allows you to set custom data and user attributes that will be used by Taplytics to segment your user into experiments, user attributes set after calling `Taplytics.init()` won't be used for segmentation until the next session. Format of user attributes defined [here](https://taplytics.com/docs/javascript-sdk/reference#identify). |
+| track_adobe_analytics | Boolean | Enable Adobe Analytics events to be collected into Taplytics.   |
+| adobe_obj_name | String | The adobe_obj_name is optional. The default variable that comes with Adobe Analytics integration is `s`. The `s` variable contains all of the tracking tags to be sent to Adobe Analytics for a given visitor. You only need to provide this if you are using a custom variable name. |
 
 
 Any Object fields will need to be url encoded, to do that simply in Javascript: 
@@ -125,6 +127,8 @@ Start options allow you to control how certain SDK features, such as the default
 | fast_mode | Boolean | Enables client-side experiment distribution using CDN distributed configuration, but reduces segmentation options. [Learn more](https://github.com/taplytics/Taplytics-js/blob/master/START.md#fast-mode). |
 | cookie_domain | String | Set the domain that Taplytics will use to create cookies with. By default Taplytics will use a wildcard version of your top level domain that will work across sub-domains. For example a cookie from `web.taplytics.com` will be set as `.taplytics.com`, that will also work on another subdomain such as: `new.taplytics.com`. |
 | user_attributes | Object | Set initial user attributes to be used during initial segmentation. This allows you to set custom data and user attributes that will be used by Taplytics to segment your user into experiments, user attributes set after calling `Taplytics.init()` won't be used for segmentation until the next session. For the format of user attributes, [visit our reference documentation](https://taplytics.com/docs/javascript-sdk/reference#identify). |
+| track_adobe_analytics | Boolean | Enable Adobe Analytics events to be collected into Taplytics.   |
+| adobe_obj_name | String | The adobe_obj_name is optional. The default variable that comes with Adobe Analytics integration is `s`. The `s` variable contains all of the tracking tags to be sent to Adobe Analytics for a given visitor. You only need to provide this if you are using a custom variable name. |
 
 Example: 
 
@@ -217,3 +221,9 @@ function hasOptedOut() {
     console.log(`Has user opted out tracking: ${hasUserOptedOut}`)
 }
 ```
+
+
+### 7. Adobe Analytics integration
+
+Adobe Analytics by default uses `s.t()` and `s.tl()` for tracking page views and link clicks. By setting `track_adobe_analytics` variable to true in `Taplytics.init` function, We inject our tracking code into the definitions of these functions. So whenever `s.t()` or `s.tl()` is called on the page, It first sends those events to Taplytics before sending them to Adobe Analytics. 
+By default, Taplytics assumes adobe analytics tracking variable to be `s`. If you use a custom variable, then make sure to provide that during taplytics initialization with `adobe_obj_name` variable.
