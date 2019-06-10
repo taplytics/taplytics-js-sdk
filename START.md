@@ -8,7 +8,7 @@ To fully utilize the power of Taplytics.js, you simply have to:
 | 3 | [Track Events](#3-track-events) |
 | 4 | [Track Page Views](#4-track-page-views) |
 | 5 | [Experiments](#5-experiments) |
-| 6 | [Opt-In/Out](#6-opt-in/out) |
+| 6 | [Opt-In/Out](#6-opt-inout) |
 | 7 | [Adobe Analytics Integration](#7-adobe-analytics-integration) |
 | 8 | [CNAME Aliasing](#8-cname-aliasing) |
 
