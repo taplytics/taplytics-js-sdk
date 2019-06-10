@@ -7,6 +7,9 @@ To fully utilize the power of Taplytics.js, you simply have to:
 | 2 | [Identify Users](#2-identify-users) |
 | 3 | [Track Events](#3-track-events) |
 | 4 | [Track Page Views](#4-track-page-views) |
+| 5 | [Experiments](#5-experiments) |
+| 6 | [Opt-In/Out](#6-opt-inout) |
+| 7 | [Adobe Analytics Integration](#7-adobe-analytics-integration) |
 
 ## 1A Synchronous script loading
 
@@ -73,6 +76,10 @@ Example:
 ```javascript
 <script type="text/javascript" src="https://js.taplytics.com/jssdk/{JS_SDK_TOKEN}.min.js?cookie_domain=web.taplytics.com&test_experiments=%7B%22exp%22%3A%22var%22%7D&user_attributes=%7B%22user_id%22%3A%22user1%22%2C%22customValue%22%3A10%7D></script>
 ```
+
+### Session Length
+
+A session is defined as user activity from the start of a new session until 30 minutes from last activity logged into Taplytics. If a user has not done anything to trigger updating their user information in Taplytics, we consider their next activity afterwards to be a new session.
 
 ## 1B Asynchronous script loading
 
