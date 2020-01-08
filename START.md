@@ -7,10 +7,6 @@ To fully utilize the power of Taplytics.js, you simply have to:
 | 2 | [Identify Users](#2-identify-users) |
 | 3 | [Track Events](#3-track-events) |
 | 4 | [Track Page Views](#4-track-page-views) |
-| 5 | [Experiments](#5-experiments) |
-| 6 | [Opt-In/Out](#6-opt-inout) |
-| 7 | [Adobe Analytics Integration](#7-adobe-analytics-integration) |
-| 8 | [CNAME Aliasing](#8-cname-aliasing) |
 
 ## 1A Synchronous script loading
 
@@ -231,41 +227,3 @@ function hasOptedOut() {
 
 Adobe Analytics by default uses `s.t()` and `s.tl()` for tracking page views and link clicks. By setting `track_adobe_analytics` variable to true in `Taplytics.init` function, We inject our tracking code into the definitions of these functions. So whenever `s.t()` or `s.tl()` is called on the page, It first sends those events to Taplytics before sending them to Adobe Analytics. 
 By default, Taplytics assumes adobe analytics tracking variable to be `s`. If you use a custom variable, then make sure to provide that during taplytics initialization with `adobe_obj_name` variable.
-
-### 8. CNAME Aliasing
-
-To prevent adblocks from blocking requests to our api servers, you can setup a CNAME on your domain that points to our API domains:
-
-`https://api.taplytics.com`
-`https://ping.taplytics.com`
-
-Once you have your CNAME setup, you can pass in as options to the sync script URL or as options in `Taplytics.init`.
-
-```javascript
-
-Taplytics.init("TOKEN", {
-    alias_host: {
-        api_host: 'https://api-alias.your-domain.com',
-        ping_host: 'https://ping-alias.your-domain.com'
-    }
-});
-
-```
-
-```HTML
-
-<script type="text/javascript">
-  var head = document.getElementsByTagName('head')[0];
-  var script = document.createElement('script');
-  script.type = 'text/javascript';
-  const alias = {
-    api_host: 'https://api-alias.your-domain.com',
-    ping_host: 'https://ping-alias.your-domain.com'
-  }
-  const encodedAlias = encodeURIComponent(JSON.stringify(alias));
-  script.src = `https://js.taplytics.com/jssdk/{YOUR_TOKEN}.min.js?alias_host=${encodedAlias}`;
-  head.appendChild(script);
-</script>
-
-
-```
