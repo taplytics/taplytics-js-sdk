@@ -12,7 +12,6 @@ Here are the APIs that Taplytics.js exposes:
 | [runningExperiments](#runningexperiments) | Taplytics running experiments |
 | [variable](#variable) | Taplytics variable |
 | [codeBlock](#codeblock) | Taplytics code block |
-| [startNewSession](#startNewSession) | Taplytics startNewSession |
 
 
 If you haven't already, check out our guide on how to get started with our Javascript SDK [here](https://taplytics.com/docs/javascript-sdk).
@@ -63,7 +62,6 @@ Taplytics.init("js-sdk-token", {
     auto_page_view: false,
     log_level: 1
 });
-
 
 ```
 
@@ -119,7 +117,6 @@ Taplytics.identify({
     friends_Count: 800
 });
 
-
 ```
 
 
@@ -174,8 +171,6 @@ Taplytics.track("Purchased", 180.50, {
 Taplytics.track("Finished Tutorial", {
     time_on_tutorial: 100
 });
-
-
 ```
 
 
@@ -236,7 +231,6 @@ Taplytics.page("Product Listings", "Shirts", {
     products_count: 150
 });
 
-
 ```
 
 
@@ -262,7 +256,6 @@ Resets the user object and assumes the visitor is now anonymous. This can be use
 
 Taplytics.reset();
 
-
 ```
 
 ---
@@ -285,7 +278,6 @@ Calls the function provided when the SDK's properties have loaded from Taplytics
 Taplytics.propertiesLoaded(function() { 
     // properties have loaded
 });
-
 
 ```
 
@@ -313,7 +305,6 @@ Taplytics.runningExperiments(function(expAndVars) {
     //  "Experiment 2": "Variation 1"
     //};
 });
-
 
 ```
 
@@ -375,24 +366,5 @@ Taplytics.codeBlock("JS CodeBlock", function() {
     console.log("JS Code Block");
     // run your code here
 });
-
-
-```
-
----
-
-### startNewSession
-
-Usage: `Taplytics.startNewSession()`
-
-Creates a new session for the user and fetches the new config data.
-
-##### Example
-
-```javascript
-
-Taplytics.setUserAttributes({user_id: 'new_user!'})
-Taplytics.startNewSession()
-
 
 ```
