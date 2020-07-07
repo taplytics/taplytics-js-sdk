@@ -7,6 +7,9 @@ Creating experiments is easy, using the Taplytics Javascript SDK you can create 
 | [Dynamic Variables](#dynamic-variables) |
 | [Code Blocks](#code-blocks) |
 | [Running Experiments](#get-running-experiments) |
+| [Feature Flags](#feature-flags) |
+| [Running Feature Flags](#running-feature-flags) |
+| [Visual Experiments](#visual-experiments) |
 
 ## Dynamic Variables & Code Blocks
 
@@ -102,8 +105,6 @@ Taplytics.init("API_KEY", {
 
 Taplytics feature flags operate in synchronous mode.
 
-### Synchronous
-
 Synchronous feature flags are guaranteed to have the same value for the entire session and will have that value immediately after construction.
 
 ```
@@ -124,7 +125,7 @@ Taplytics.propertiesLoaded((loaded) => {
 
 ---
 
-## Running Feature Flags
+### Running Feature Flags
 
 If you would like to see which feature flags are running, there exists a `getRunningFeatureFlags` function which provides a callback with an object that contains the currently active feature flags. An example:
 
@@ -143,3 +144,10 @@ feature flag key names and their corresponding values are the names of the assoc
 
 ---
 
+## Visual Experiments
+
+Visual editor experiments apply the visual edits created from the Visual Web Editor automatically on DOM load. It also listens for DOM changes and applies the visual edits.
+
+You can disable this functionality with the `manual_trigger_edits` option by passing it as a query param in the SDK call and setting it to `true`. You can then apply visual edits manually by calling:
+
+```Taplytics.applyVisualEdits()```
