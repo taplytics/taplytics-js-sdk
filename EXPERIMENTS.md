@@ -8,7 +8,6 @@ Creating experiments is easy, using the Taplytics Javascript SDK you can create 
 | [Code Blocks](#code-blocks) |
 | [Running Experiments](#get-running-experiments) |
 | [Feature Flags](#feature-flags) |
-| [Running Feature Flags](#running-feature-flags) |
 | [Visual Experiments](#visual-experiments) |
 
 ## Dynamic Variables & Code Blocks
