@@ -57,20 +57,6 @@ Synchronous variables take two parameters in its constructor:
 
 The type of the variable is defined by the type of the default value, and can be a `String`, `Number` or a `Boolean`.
 
-### Code Blocks
-
-Similar to Dynamic Variables, Taplytics has an option for 'Code Blocks'. Code blocks are linked to Experiments through the Taplytics website very much the same way that Dynamic Variables are, and will be executed based on the configuration of the experiment through the Taplytics website. A Code Block is a function that can be enabled or disabled depending on the variation. If enabled, the function will be executed asynchronously once the experiment config has loaded from our servers. If disabled, the function will not be executed.
-
-A Code Block can be used alongside as many other Code Blocks as you would like to determine a combination that yields the best results. Perhaps there are three different Code Blocks on one view. This means there could be 8 different combinations of Code Blocks being enabled / disabled on that view if you'd like.
-
-Example:
-
-```javascript
-Taplytics.codeBlock("enableFeature", function() {
-    // enable your feature here
-});
-```
-
 ## Get Running Experiments
 
 If you would like to see which variations and experiments are running, use the  `runningExperiments` function which will return the current experiments and their running variation once the SDK has loaded the config from our servers. An example:

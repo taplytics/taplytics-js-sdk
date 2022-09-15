@@ -82,7 +82,7 @@ To install Taplytics JS SDK *asynchronously*, you have to include the following 
 
 ```html
 <script type="text/javascript">
-!function(){var t=window.Taplytics=window.Taplytics||[];if(window._tlq=window._tlq||[],!t.identify&&!t.loaded){t.loaded=!0,t.funcs=["init","identify","track","page","reset","propertiesLoaded","runningExperiments","variable","codeBlock"],t.mock=function(n){return function(){var e=Array.prototype.slice.call(arguments);return e.unshift(n),window._tlq.push(e),t}};for(var n=0;n<t.funcs.length;n++){var e=t.funcs[n];t[e]=t.mock(e)}t.load=function(){var t=document.createElement("script");t.type="text/javascript",t.async=!0,t.src="//cdn.taplytics.com/taplytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(t,n)},t.load()}}();
+!function(){var t=window.Taplytics=window.Taplytics||[];if(window._tlq=window._tlq||[],!t.identify&&!t.loaded){t.loaded=!0,t.funcs=["init","identify","track","page","reset","propertiesLoaded","runningExperiments","variable"],t.mock=function(n){return function(){var e=Array.prototype.slice.call(arguments);return e.unshift(n),window._tlq.push(e),t}};for(var n=0;n<t.funcs.length;n++){var e=t.funcs[n];t[e]=t.mock(e)}t.load=function(){var t=document.createElement("script");t.type="text/javascript",t.async=!0,t.src="//cdn.taplytics.com/taplytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(t,n)},t.load()}}();
 </script>
 ```
 
@@ -108,7 +108,6 @@ Adding Fast Mode start option example:
 
 ```javascript
 Taplytics.init("API_KEY", {
-    fast_mode: true
 });
 ```
 
@@ -124,7 +123,6 @@ Start options allow you to control how certain SDK features, such as the default
 |---        |---	        |---          |
 | timeout | Number | Set the request timeout in seconds. If requests timeout variables will use the default value, but no events will be saved. The default timeout is 4 seconds. |
 | test_experiments | Object | Set an Object containing pairs of experiment/variation combinations as key/value pairs to test with. [Learn more](https://github.com/taplytics/Taplytics-js/blob/master/EXPERIMENTS.md#testing-experiments). |
-| fast_mode | Boolean | Enables client-side experiment distribution using CDN distributed configuration, but reduces segmentation options. [Learn more](https://github.com/taplytics/Taplytics-js/blob/master/START.md#fast-mode). |
 | cookie_domain | String | Set the domain that Taplytics will use to create cookies with. By default Taplytics will use a wildcard version of your top level domain that will work across sub-domains. For example a cookie from `web.taplytics.com` will be set as `.taplytics.com`, that will also work on another subdomain such as: `new.taplytics.com`. |
 | user_attributes | Object | Set initial user attributes to be used during initial segmentation. This allows you to set custom data and user attributes that will be used by Taplytics to segment your user into experiments, user attributes set after calling `Taplytics.init()` won't be used for segmentation until the next session. For the format of user attributes, [visit our reference documentation](https://taplytics.com/docs/javascript-sdk/reference#identify). |
 | track_adobe_analytics | Boolean | Enable Adobe Analytics events to be collected into Taplytics.   |
@@ -135,7 +133,6 @@ Example:
 ```javascript
 Taplytics.init("API_KEY", {
     timeout: 10,
-    fast_mode: true,
     test_experiments: {
         "JS experiment": "Variation 1",
         "JS experiment 2": "baseline"
