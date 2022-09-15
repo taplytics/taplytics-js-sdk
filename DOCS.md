@@ -11,7 +11,6 @@ Here are the APIs that Taplytics.js exposes:
 | [propertiesLoaded](#propertiesloaded) | Taplytics properties loaded |
 | [runningExperiments](#runningexperiments) | Taplytics running experiments |
 | [variable](#variable) | Taplytics variable |
-| [codeBlock](#codeblock) | Taplytics code block |
 
 
 If you haven't already, check out our guide on how to get started with our Javascript SDK [here](https://taplytics.com/docs/javascript-sdk).
@@ -40,7 +39,6 @@ It also automatically calls the [page](#taplyticspagecategory-name-page_attribut
 	|---        |---	        |---          |
 	| timeout | Number | Set the request timeout in seconds. If requests timeout variables will use the default value, but no events will be saved. The default timeout is 4 seconds. |
 	| test_experiments | Object | Set an Object containing pairs of experiment/variation combinations as key/value pairs to test with. [Learn more](https://github.com/taplytics/Taplytics-js/blob/master/EXPERIMENTS.md#testing-experiments). |
-	| fast_mode | Boolean | Enables client-side experiment distribution using CDN distributed configuration, but reduces segmentation options. [Docs](https://github.com/taplytics/Taplytics-js/blob/master/START.md#fast-mode) |
 	| cookie_domain | String | Set the domain that Taplytics will use to create cookies with. By default Taplytics will use a wildcard version of your top level domain that will work across sub-domains. For example a cookie from `web.taplytics.com` will be set as `.taplytics.com`, that will also work on another subdomain such as: `new.taplytics.com`. |
 	| user_attributes | Object | Set inital user attributes to be used during inital segmenation. This allows you to set custom data and user attributes that will be used by Taplytics to segment your user into experiments, user attributes set after calling `Taplytics.init()` won't be used for segmentation until the next session. |
 
@@ -344,27 +342,3 @@ Taplytics.propertiesLoaded(function() {
 
 ```
 
----
-
-
-### codeBlock
-
-Usage: `Taplytics.codeBlock(name, codeBlock)`
-
-Creates a Taplytics Code Block that will be run if enabled for the running experiment/variation through Taplytics website.
-
-##### Arguments
-
-1. `name` (string): Variable Name.
-3. `codeBlock` (function): Code Block to be called if enabled for the experiment's variation.
-
-##### Example
-
-```javascript
-
-Taplytics.codeBlock("JS CodeBlock", function() {
-    console.log("JS Code Block");
-    // run your code here
-});
-
-```
