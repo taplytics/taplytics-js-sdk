@@ -10,28 +10,24 @@ You can find the full technical documentation of Taplytics.js [here](https://doc
 
 ## Installing
 
-`yarn add @taplytics/js-sdk`
+```
+yarn add @taplytics/js-sdk
+```
 
 or
 
-`npm install @taplytics/js-sdk --save`
+```
+npm install @taplytics/js-sdk --save
+```
 
 ## Usage
 
-This package can be included in an application bundle, typically created with tools like Webpack.
+Import the SDK somewhere in your application, and initialize using your project token:
 
-Once installed, it can be consumed by importing the sdk.
-
-For example, inside a React application, the sdk can be imported and initialized, using the `propertiesLoaded` callback to only render your UI once your project's config has been loaded from the Taplytics servers.
-
-```
+```javascript
 import Taplytics from '@taplytics/js-sdk';
 
-Taplytics.init(JS_SDK_TOKEN);
-
-Taplytics.propertiesLoaded(function() {
-  ReactDOM.render(<App />, document.getElementById('root'));
-});
+Taplytics.start('JS_SDK_KEY');
 ```
 
 ## More information
